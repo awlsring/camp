@@ -36,8 +36,8 @@ func main() {
 			return errors.Wrap(err, "metrics")
 		}
 
-		server, err := camplocal.NewServer(camplocalapi.Handler{},
-			&camplocalapi.ApiKeySecurityHandler{},
+		cserver, err := camplocal.NewServer(camplocalapi.NewHandler(),
+			camplocalapi.SecurityHandler(server.NewApiKeyAuth()),
 			camplocal.WithTracerProvider(m.TracerProvider()),
 			camplocal.WithMeterProvider(m.MeterProvider()),
 		)
@@ -46,7 +46,7 @@ func main() {
 		}
 		httpServer := http.Server{
 			Addr:    arg.Addr,
-			Handler: server,
+			Handler: cserver,
 		}
 
 		g, ctx := errgroup.WithContext(ctx)

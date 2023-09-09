@@ -9,8 +9,10 @@ import (
 // Compile-time check for Handler.
 var _ camplocal.Handler = (*Handler)(nil)
 
-type Handler struct {
-	camplocal.UnimplementedHandler // automatically implement all methods
+type Handler struct{}
+
+func NewHandler() camplocal.Handler {
+	return Handler{}
 }
 
 func (h Handler) Health(ctx context.Context) (camplocal.HealthRes, error) {
