@@ -13,7 +13,7 @@ type Handler struct {
 	camplocal.UnimplementedHandler // automatically implement all methods
 }
 
-func (h Handler) Health(ctx context.Context) (*camplocal.HealthResponseContent, error) {
+func (h Handler) Health(ctx context.Context) (camplocal.HealthRes, error) {
 	return &camplocal.HealthResponseContent{
 		Success: true,
 	}, nil
