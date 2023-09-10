@@ -1,3 +1,5 @@
 **/.gradle
 **/build
 generated
+tmp*
+apps/**/swagger

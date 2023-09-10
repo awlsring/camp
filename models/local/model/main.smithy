@@ -10,6 +10,7 @@ use awlsring.camp.common.exceptions#UnauthorizedException
 @restJson1
 @httpBearerAuth
 @httpApiKeyAuth(name: "X-Api-Key", in: "header")
+@auth([httpBearerAuth, httpApiKeyAuth])
 service CampLocal {
     version: "2022-10-20",
     operations: [ Health ]

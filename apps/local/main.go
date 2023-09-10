@@ -5,6 +5,8 @@ import (
 	"flag"
 	"net/http"
 
+	_ "embed"
+
 	camplocal "github.com/awlsring/camp/generated/camp_local"
 	camplocalapi "github.com/awlsring/camp/internal/app/local"
 	"github.com/awlsring/camp/internal/pkg/server"
@@ -12,6 +14,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
+
+//go:embed swagger/swagger.json
+var doc []byte
 
 func main() {
 	server.Run(func(ctx context.Context, lg *zap.Logger) error {
@@ -36,19 +41,24 @@ func main() {
 			return errors.Wrap(err, "metrics")
 		}
 
-		cserver, err := camplocal.NewServer(camplocalapi.NewHandler(),
+		srv, err := camplocal.NewServer(camplocalapi.NewHandler(),
 			camplocalapi.SecurityHandler(server.NewApiKeyAuth()),
 			camplocal.WithTracerProvider(m.TracerProvider()),
 			camplocal.WithMeterProvider(m.MeterProvider()),
+			camplocal.WithMiddleware(),
 		)
 		if err != nil {
 			return errors.Wrap(err, "server init")
 		}
 		httpServer := http.Server{
 			Addr:    arg.Addr,
-			Handler: cserver,
+			Handler: srv,
 		}
 
+		mux := http.NewServeMux()
+		mux.Handle("/", http.StripPrefix("/api/v1", srv))
+		mux.Handle("/swagger/", server.SwaggerUIHandler())
+		mux.Handle("/swagger/swagger.json", server.SwaggerAPIv1Handler(doc))
 		g, ctx := errgroup.WithContext(ctx)
 		g.Go(func() error {
 			return m.Run(ctx)
@@ -59,7 +69,10 @@ func main() {
 		})
 		g.Go(func() error {
 			defer lg.Info("Server stopped")
-			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			// if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			// 	return errors.Wrap(err, "http")
+			// }
+			if err := http.ListenAndServe(arg.Addr, mux); err != nil && err != http.ErrServerClosed {
 				return errors.Wrap(err, "http")
 			}
 			return nil
