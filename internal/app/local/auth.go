@@ -20,3 +20,7 @@ type ApiKeySecurityHandler struct {
 func (h *ApiKeySecurityHandler) HandleSmithyAPIHttpApiKeyAuth(ctx context.Context, operationName string, t camplocal.SmithyAPIHttpApiKeyAuth) (context.Context, error) {
 	return h.auth.Authenticate(ctx, operationName, t.GetAPIKey())
 }
+
+func (h *ApiKeySecurityHandler) HandleSmithyAPIHttpBearerAuth(ctx context.Context, operationName string, t camplocal.SmithyAPIHttpBearerAuth) (context.Context, error) {
+	return h.auth.Authenticate(ctx, operationName, t.GetToken())
+}

@@ -14,11 +14,15 @@ codegen: codegen-common codegen-local
 
 codegen-common:
 	@echo "Building the common model"
-	cd ${MODEL_DIR}/common && smithy build
+	cd ${MODEL_DIR}/common && smithy format model && smithy build
 
-codegen-local: codegen-common
+codegen-agent: codegen-common
+	@echo "Building the agent model"
+	cd ${MODEL_DIR}/agent && smithy format model && smithy build
+
+codegen-local: codegen-common codegen-agent
 	@echo "Building the local model"
-	cd ${MODEL_DIR}/local && smithy build
+	cd ${MODEL_DIR}/local && smithy format model && smithy build
 	@echo "Generating the local api server and client"
 	mkdir -p $(LOCAL_SDK_DST)
 	go run github.com/ogen-go/ogen/cmd/ogen --target $(LOCAL_SDK_DST) -package camplocal --debug.noerr --clean $(LOCAL_OPEN_API_MODEL)

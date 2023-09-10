@@ -1,20 +1,17 @@
 $version: "2.0"
 
-namespace awlsring.camp.local
+namespace awlsring.camp.agent
 
 use awlsring.camp.common.exceptions#UnauthorizedException
 use awlsring.camp.common.operations#Health
 use aws.protocols#restJson1
 
-@title("Camp Local Controller")
+@title("Camp Machine Agent")
 @restJson1
-@httpBearerAuth
 @httpApiKeyAuth(name: "X-Api-Key", in: "header")
-@auth([httpBearerAuth, httpApiKeyAuth])
 @paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "pageSize")
-service CampLocal {
-    version: "2022-10-20"
-    resources: [Machine]
-    operations: [Health, Heartbeat, Register, ReportStatusChange, ReportSystemChange]
+service CampAgent {
+    version: "2023-06-07"
+    operations: [Health, GetOverview, GetUptime, GetCpuUtilization, GetMemoryUtilization, GetDiskUtilization, GetNetworkInterfaceUtilization, GetVolumeUtilization]
     errors: [UnauthorizedException]
 }

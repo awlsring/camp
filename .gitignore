@@ -3,3 +3,4 @@
 generated
 tmp*
 apps/**/swagger
+apps/test

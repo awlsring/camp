@@ -1,7 +1,7 @@
 {
     "version": "2.0",
     "sources": ["model"],
-    "imports": ["../common/model"],
+    "imports": ["../common/model", "../agent/model"],
     "maven": {
       "dependencies": [
           "software.amazon.smithy:smithy-model:1.37.0",
@@ -19,7 +19,10 @@
         "plugins": {
           "openapi": {
             "service": "awlsring.camp.local#CampLocal",
-            "protocol": "aws.protocols#restJson1"
+            "protocol": "aws.protocols#restJson1",
+            "jsonAdd": {
+              "/components/securitySchemes/smithy.api.httpBearerAuth/scheme": "bearer"
+            }
           }
         }
       },

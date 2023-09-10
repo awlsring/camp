@@ -20,3 +20,31 @@ func (h Handler) Health(ctx context.Context) (camplocal.HealthRes, error) {
 		Success: true,
 	}, nil
 }
+
+func (h Handler) DescribeMachine(ctx context.Context, req camplocal.DescribeMachineParams) (camplocal.DescribeMachineRes, error) {
+	return &camplocal.DescribeMachineResponseContent{
+		Summary: camplocal.MachineSummary{
+			Identifier: req.Identifier,
+		},
+	}, nil
+}
+
+func (h Handler) ListMachines(ctx context.Context) (camplocal.ListMachinesRes, error) {
+	panic("not implemented")
+}
+
+func (h Handler) Heartbeat(ctx context.Context, req *camplocal.HeartbeatRequestContent) (camplocal.HeartbeatRes, error) {
+	panic("not implemented")
+}
+
+func (h Handler) Register(ctx context.Context, req *camplocal.RegisterRequestContent) (camplocal.RegisterRes, error) {
+	panic("not implemented")
+}
+
+func (h Handler) ReportStatusChange(ctx context.Context, req *camplocal.ReportStatusChangeRequestContent) (camplocal.ReportStatusChangeRes, error) {
+	panic("not implemented")
+}
+
+func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSystemChangeRequestContent) (camplocal.ReportSystemChangeRes, error) {
+	panic("not implemented")
+}
