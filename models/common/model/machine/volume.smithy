@@ -11,9 +11,8 @@ structure MachineVolumeSummary {
     mountPoint: String
 
     @required
-    totalSpace: Long
+    total: Long
 
-    @required
     fileSystem: String
 }
 

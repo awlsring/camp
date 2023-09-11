@@ -6,7 +6,6 @@ use awlsring.camp.common.ip#IpAddressSummaries
 use awlsring.camp.common.machine#MachineClass
 use awlsring.camp.common.machine#MachineCpuSummary
 use awlsring.camp.common.machine#MachineDiskSummaries
-use awlsring.camp.common.machine#MachineId
 use awlsring.camp.common.machine#MachineMemorySummary
 use awlsring.camp.common.machine#MachineNetworkInterfaceSummaries
 use awlsring.camp.common.machine#MachineStatusSummary
@@ -15,16 +14,18 @@ use awlsring.camp.common.machine#MachineVolumeSummaries
 use awlsring.camp.common.tags#Tags
 
 resource Machine {
-    identifiers: {identifier: MachineId}
+    identifiers: {identifier: InternalMachineId}
     read: DescribeMachine
     list: ListMachines
 }
+
+string InternalMachineId
 
 @documentation("Summarized information about a machine")
 structure MachineSummary {
     @documentation("The machine identifier")
     @required
-    identifier: MachineId
+    identifier: InternalMachineId
 
     @documentation("Information about the machine status")
     @required

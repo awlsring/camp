@@ -20,26 +20,24 @@ structure MachineDiskSummary {
     @required
     device: String
 
-    @required
     model: String
 
-    @required
     vendor: String
 
     @required
     interface: DiskInterface
 
-    @required
     serial: String
 
     @required
     type: DiskType
 
-    @required
     sectorSize: Integer
 
-    @required
     sizeRaw: Long
+
+    @required
+    size: Long
 }
 
 list MachineDiskSummaries {

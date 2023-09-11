@@ -2,6 +2,7 @@ package camplocalapi
 
 import (
 	"context"
+	"errors"
 
 	camplocal "github.com/awlsring/camp/generated/camp_local"
 )
@@ -30,7 +31,15 @@ func (h Handler) DescribeMachine(ctx context.Context, req camplocal.DescribeMach
 }
 
 func (h Handler) ListMachines(ctx context.Context) (camplocal.ListMachinesRes, error) {
-	panic("not implemented")
+	return &camplocal.ValidationExceptionResponseContent{
+		Message: "not implemented",
+		FieldList: []camplocal.ValidationExceptionField{
+			{
+				Path:    "not implemented",
+				Message: "not implemented",
+			},
+		},
+	}, errors.New("not implemented")
 }
 
 func (h Handler) Heartbeat(ctx context.Context, req *camplocal.HeartbeatRequestContent) (camplocal.HeartbeatRes, error) {

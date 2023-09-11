@@ -29,6 +29,7 @@ codegen-local: codegen-common codegen-agent
 	@echo "Creating static docs"
 	mkdir -p $(APP_DIR)/local/swagger
 	cp $(LOCAL_OPEN_API_MODEL) $(APP_DIR)/local/swagger/swagger.json
+	go generate ./models/database/local
 
 build: codegen
 
