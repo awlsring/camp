@@ -1,0 +1,43 @@
+{
+    "version": "2.0",
+    "sources": ["model"],
+    "imports": ["../common/model", "../local/model"],
+    "maven": {
+      "dependencies": [
+          "software.amazon.smithy:smithy-model:1.37.0",
+          "software.amazon.smithy:smithy-validation-model:1.37.0",
+          "software.amazon.smithy:smithy-aws-traits:1.37.0",
+          "software.amazon.smithy:smithy-linters:1.37.0",
+          "software.amazon.smithy:smithy-openapi:1.37.0",
+          "software.amazon.smithy:smithy-openapi-traits:1.37.0",
+          "software.amazon.smithy:smithy-waiters:1.37.0",
+          "software.amazon.smithy.typescript:smithy-typescript-codegen:0.17.1"
+        ]
+    },
+    "projections": {
+      "openapi": {
+        "plugins": {
+          "openapi": {
+            "service": "awlsring.camp.api#Camp",
+            "protocol": "aws.protocols#restJson1",
+            "jsonAdd": {
+              "/components/securitySchemes/smithy.api.httpBearerAuth/scheme": "bearer"
+            }
+          }
+        }
+      },
+      "typescript": {
+        "plugins": {
+          "typescript-codegen": {
+            "service": "awlsring.camp.api#Camp",  
+            "targetNamespace": "camp",  
+            "package": "@awlsring/camp-local",  
+            "packageVersion": "0.0.1",  
+            "packageJson": {  
+              "license": "Apache-2.0"  
+            }
+          }
+        }
+      }
+    }
+  }

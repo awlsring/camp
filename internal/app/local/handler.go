@@ -10,7 +10,8 @@ import (
 // Compile-time check for Handler.
 var _ camplocal.Handler = (*Handler)(nil)
 
-type Handler struct{}
+type Handler struct {
+}
 
 func NewHandler() camplocal.Handler {
 	return Handler{}

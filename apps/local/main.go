@@ -10,7 +10,6 @@ import (
 	camplocal "github.com/awlsring/camp/generated/camp_local"
 	camplocalapi "github.com/awlsring/camp/internal/app/local"
 	"github.com/awlsring/camp/internal/pkg/server"
-	"github.com/awlsring/camp/internal/pkg/server/auth"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -43,7 +42,7 @@ func main() {
 		}
 
 		srv, err := camplocal.NewServer(camplocalapi.NewHandler(),
-			camplocalapi.SecurityHandler(auth.NewAuthHandler(auth.KeyAuthenticator{}, auth.CasbinAuthorizer{})),
+			camplocalapi.SecurityHandler("a", []string{"b"}),
 			camplocal.WithTracerProvider(m.TracerProvider()),
 			camplocal.WithMeterProvider(m.MeterProvider()),
 			camplocal.WithErrorHandler(server.SmithyErrorHandler),

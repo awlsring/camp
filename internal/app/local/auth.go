@@ -1,26 +1,44 @@
 package camplocalapi
 
 import (
+	"errors"
+	"fmt"
+
 	camplocal "github.com/awlsring/camp/generated/camp_local"
-	"github.com/awlsring/camp/internal/pkg/server/auth"
 
 	"context"
 )
 
-func SecurityHandler(auth auth.Handler) camplocal.SecurityHandler {
+func SecurityHandler(campKey string, agentKeys []string) camplocal.SecurityHandler {
 	return &LocalSecurityHandler{
-		auth: auth,
+		campKey:  campKey,
+		nodeKeys: agentKeys,
 	}
 }
 
 type LocalSecurityHandler struct {
-	auth auth.Handler
+	campKey  string
+	nodeKeys []string
 }
 
 func (h *LocalSecurityHandler) HandleSmithyAPIHttpApiKeyAuth(ctx context.Context, operationName string, t camplocal.SmithyAPIHttpApiKeyAuth) (context.Context, error) {
-	return h.auth.Authenticate(ctx, operationName, t.GetAPIKey())
-}
+	valid := false
+	key := t.GetAPIKey()
 
-func (h *LocalSecurityHandler) HandleSmithyAPIHttpBearerAuth(ctx context.Context, operationName string, t camplocal.SmithyAPIHttpBearerAuth) (context.Context, error) {
-	return h.auth.Authenticate(ctx, operationName, t.GetToken())
+	switch operationName {
+	case "DescribeMachine", "ListMachines", "Health":
+		if key == h.campKey {
+			valid = true
+		}
+	case "Heartbeat", "Register", "ReportStatusChange", "ReportSystemChange":
+		for _, nodeKey := range h.nodeKeys {
+			if key == nodeKey {
+				valid = true
+			}
+		}
+	}
+	if valid {
+		return ctx, nil
+	}
+	return ctx, errors.New(fmt.Sprintf("Invalid API Key for Operation: %s", operationName))
 }
