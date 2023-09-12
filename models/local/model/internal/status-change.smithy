@@ -21,7 +21,7 @@ structure ReportStatusChangeInput {
     internalIdentifier: String
 
     @required
-    summary: MachineStatus
+    status: MachineStatus
 }
 
 @output

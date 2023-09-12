@@ -32,6 +32,5 @@ func (Machine) Edges() []ent.Edge {
 		edge.To("memory", Memory.Type).Unique(),
 		edge.To("networkInterfaces", NetworkInterface.Type).Unique(),
 		edge.To("volumes", Volume.Type).Unique(),
-		edge.To("ipAddresses", IpAddress.Type).Unique(),
 	}
 }

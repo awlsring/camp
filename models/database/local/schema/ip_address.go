@@ -19,10 +19,6 @@ func (IpAddress) Fields() []ent.Field {
 
 func (IpAddress) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("machine", Machine.Type).
-			Ref("ipAddresses").
-			Unique().
-			Required(),
 		edge.From("networkInterface", NetworkInterface.Type).
 			Ref("ipAddresses").
 			Unique(),

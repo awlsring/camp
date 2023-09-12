@@ -5,3 +5,4 @@ tmp*
 apps/**/swagger
 apps/test
 models/database/**/ent
+.env

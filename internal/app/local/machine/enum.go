@@ -2,6 +2,17 @@ package machine
 
 import "strings"
 
+type MachineStatus string
+
+const (
+	Running              MachineStatus = "Running"
+	Stopped              MachineStatus = "Stopped"
+	Stopping             MachineStatus = "Stopping"
+	Starting             MachineStatus = "Starting"
+	Restarting           MachineStatus = "Restarting"
+	MachineStatusUnknown MachineStatus = "Unknown"
+)
+
 type MachineClass string
 
 const (

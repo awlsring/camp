@@ -4,13 +4,17 @@ import (
 	"context"
 	"flag"
 	"net/http"
+	"os"
 
 	_ "embed"
 
 	camplocal "github.com/awlsring/camp/generated/camp_local"
 	camplocalapi "github.com/awlsring/camp/internal/app/local"
+	"github.com/awlsring/camp/internal/app/local/machine"
 	"github.com/awlsring/camp/internal/pkg/server"
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -20,6 +24,9 @@ var doc []byte
 
 func main() {
 	server.Run(func(ctx context.Context, lg *zap.Logger) error {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal().Err(err).Msg("Error loading .env file")
+		}
 		var arg struct {
 			Addr        string
 			MetricsAddr string
@@ -41,8 +48,25 @@ func main() {
 			return errors.Wrap(err, "metrics")
 		}
 
-		srv, err := camplocal.NewServer(camplocalapi.NewHandler(),
-			camplocalapi.SecurityHandler("a", []string{"b"}),
+		dbHost := os.Getenv("DB_HOST")
+		dbUser := os.Getenv("DB_USER")
+		dbPassword := os.Getenv("DB_PASSWORD")
+
+		dbConfig := machine.RepoConfig{
+			Driver:   "postgres",
+			Host:     dbHost,
+			Port:     5432,
+			Username: dbUser,
+			Password: dbPassword,
+			Database: "camplocal",
+			UseSsl:   false,
+		}
+
+		machineRepo := machine.NewRepo(dbConfig)
+		machineController := machine.NewController(machineRepo)
+
+		srv, err := camplocal.NewServer(camplocalapi.NewHandler(machineController),
+			camplocalapi.SecurityHandler("a", []string{"a"}),
 			camplocal.WithTracerProvider(m.TracerProvider()),
 			camplocal.WithMeterProvider(m.MeterProvider()),
 			camplocal.WithErrorHandler(server.SmithyErrorHandler),

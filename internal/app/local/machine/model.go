@@ -1,8 +1,12 @@
 package machine
 
+import "time"
+
 type Model struct {
 	Identifier        string
 	Class             MachineClass
+	LastHeartbeat     time.Time
+	Status            MachineStatus
 	System            *SystemModel
 	Cpu               *CpuModel
 	Memory            *MemoryModel
@@ -46,11 +50,11 @@ type DiskModel struct {
 
 type NetworkInterfaceModel struct {
 	Name        string
-	IpAddresses []AddressModel
+	IpAddresses []*AddressModel
 	Virtual     bool
 	MacAddress  *string
 	Vendor      *string
-	Mtu         *int16
+	Mtu         *int
 	Speed       *int
 	Duplex      *string
 }
