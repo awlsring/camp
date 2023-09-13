@@ -1,0 +1,7 @@
+log_level = "debug"
+
+[server]
+port = 7032
+
+[agent]
+interval = 10000

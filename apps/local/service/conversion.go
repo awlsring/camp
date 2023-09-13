@@ -1,10 +1,10 @@
-package camplocalapi
+package service
 
 import (
 	"time"
 
-	camplocal "github.com/awlsring/camp/generated/camp_local"
-	"github.com/awlsring/camp/internal/app/local/machine"
+	"github.com/awlsring/camp/apps/local/machine"
+	camplocal "github.com/awlsring/camp/packages/camp_local"
 )
 
 func reportedMachineSummaryToModel(sum *camplocal.ReportedMachineSummary) *machine.Model {

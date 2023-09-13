@@ -7,14 +7,14 @@ import (
 	"entgo.io/ent/dialect"
 	"github.com/rs/zerolog/log"
 
-	"github.com/awlsring/camp/models/database/local/ent"
-	"github.com/awlsring/camp/models/database/local/ent/cpu"
-	"github.com/awlsring/camp/models/database/local/ent/disk"
-	"github.com/awlsring/camp/models/database/local/ent/ipaddress"
-	"github.com/awlsring/camp/models/database/local/ent/machine"
-	"github.com/awlsring/camp/models/database/local/ent/memory"
-	"github.com/awlsring/camp/models/database/local/ent/networkinterface"
-	"github.com/awlsring/camp/models/database/local/ent/volume"
+	"github.com/awlsring/camp/models/local/database/ent"
+	"github.com/awlsring/camp/models/local/database/ent/cpu"
+	"github.com/awlsring/camp/models/local/database/ent/disk"
+	"github.com/awlsring/camp/models/local/database/ent/ipaddress"
+	"github.com/awlsring/camp/models/local/database/ent/machine"
+	"github.com/awlsring/camp/models/local/database/ent/memory"
+	"github.com/awlsring/camp/models/local/database/ent/networkinterface"
+	"github.com/awlsring/camp/models/local/database/ent/volume"
 
 	_ "github.com/lib/pq"
 )

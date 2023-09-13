@@ -1,0 +1,15 @@
+[Unit]
+Description=Camp System Agent
+After=network.target
+
+[Service]
+Environment=RUST_LOG=info
+Environment=CONFIG_PATH=/opt/campd/config.toml
+ExecStart=/opt/campd/campd
+WorkingDirectory=/opt/campd
+User=campd
+Group=campd
+Restart=always
+
+[Install]
+WantedBy=default.target

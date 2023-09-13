@@ -8,10 +8,10 @@ import (
 
 	_ "embed"
 
-	camplocal "github.com/awlsring/camp/generated/camp_local"
-	camplocalapi "github.com/awlsring/camp/internal/app/local"
-	"github.com/awlsring/camp/internal/app/local/machine"
+	"github.com/awlsring/camp/apps/local/machine"
+	"github.com/awlsring/camp/apps/local/service"
 	"github.com/awlsring/camp/internal/pkg/server"
+	camplocal "github.com/awlsring/camp/packages/camp_local"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -65,8 +65,8 @@ func main() {
 		machineRepo := machine.NewRepo(dbConfig)
 		machineController := machine.NewController(machineRepo)
 
-		srv, err := camplocal.NewServer(camplocalapi.NewHandler(machineController),
-			camplocalapi.SecurityHandler("a", []string{"a"}),
+		srv, err := camplocal.NewServer(service.NewHandler(machineController),
+			service.SecurityHandler("a", []string{"a"}),
 			camplocal.WithTracerProvider(m.TracerProvider()),
 			camplocal.WithMeterProvider(m.MeterProvider()),
 			camplocal.WithErrorHandler(server.SmithyErrorHandler),

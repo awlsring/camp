@@ -1,8 +1,14 @@
+target
+Cargo.lock
+.vscode
 **/.gradle
 **/build
 generated
 tmp*
 apps/**/swagger
 apps/test
-models/database/**/ent
+models/**/database/ent
 .env
+.smithy*
+packages/camp_*
+apps/**/build

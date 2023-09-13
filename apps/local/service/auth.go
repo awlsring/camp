@@ -1,10 +1,10 @@
-package camplocalapi
+package service
 
 import (
 	"errors"
 	"fmt"
 
-	camplocal "github.com/awlsring/camp/generated/camp_local"
+	camplocal "github.com/awlsring/camp/packages/camp_local"
 
 	"context"
 )
