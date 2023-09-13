@@ -11,7 +11,10 @@ use aws_smithy_http_server::{
 use log::{error, info};
 use tokio::sync::Mutex;
 
-use crate::{ config::ServerConfig, stats::controller::SystemController};
+use crate::{
+    config::ServerConfig, server::operation::overview::get_overview,
+    stats::controller::SystemController,
+};
 
 use smithy_common::auth::controller::AuthController;
 use smithy_common::auth::plugin::AuthExtension;
@@ -62,20 +65,7 @@ pub async fn start_server(ctl: Arc<Mutex<SystemController>>, config: ServerConfi
 
     let app = CampAgent::builder_with_plugins(plugins, IdentityPlugin)
         .health(check_health)
-        // .get_overview(get_overview)
-        // .get_system(get_system)
-        // .get_memory(get_memory)
-        // .get_cpu(get_cpu)
-        // .get_disk(get_disk)
-        // .list_disks(list_disks)
-        // .get_volume(get_volume)
-        // .list_volumes(list_volumes)
-        // .get_network_interface(get_network_interface)
-        // .list_network_interfaces(list_network_interfaces)
-        // .stream_container_logs(stream_container_logs)
-        // .stream_container_statistics(stream_container_statistics)
-        // .get_container(get_container)
-        // .list_containers(list_containers)
+        .get_overview(get_overview)
         .build()
         .expect("failed to build an instance of GethAgent");
 
