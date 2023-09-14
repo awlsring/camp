@@ -1,5 +1,6 @@
-use config::{AgentConfig, Config, ServerConfig};
+use config::{AgentConfig, ReportingConfig, ServerConfig};
 use daemonize::Daemonize;
+use reporting::start_heartbeat;
 use std::env;
 use std::error::Error;
 use std::fs::File;
@@ -8,6 +9,7 @@ use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration};
 
 mod config;
+mod reporting;
 mod server;
 mod stats;
 
@@ -20,8 +22,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         env::set_var("RUST_LOG", "info");
     }
     env_logger::init();
-
-    let config = config::load_config();
 
     let env = env::var("RUNTIME_ENV").unwrap_or("dev".to_string());
 
@@ -45,26 +45,45 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    tokio_main(config)
+    tokio_main()
 }
 
 #[tokio::main]
-async fn tokio_main(config: Config) -> Result<(), Box<dyn Error>> {
+async fn tokio_main() -> Result<(), Box<dyn Error>> {
     info!("Initializing agent");
+    let mut config = config::load_config();
 
     let ctl = Arc::new(Mutex::new(SystemController::new()));
+    let machine_id = ctl.lock().await.system().machine_id().to_owned();
     let sctl = ctl.clone();
 
     info!("Starting agent loop");
-    tokio::spawn(agent_loop(ctl, config.get_agent().clone()));
+    let reporting_config = config.take_reporting();
+
+    tokio::spawn(agent_loop(
+        ctl,
+        reporting_config.clone(),
+        config.take_agent(),
+    ));
+
+    info!("Starting heartbeat loop");
+    tokio::spawn(heartbeat_loop(reporting_config, machine_id));
 
     info!("Starting server loop");
-    server_loop(sctl, config.get_server().clone()).await;
+    server_loop(sctl, config.take_server()).await;
 
     Ok(())
 }
 
-async fn agent_loop(ctl: Arc<Mutex<SystemController>>, config: AgentConfig) {
+async fn heartbeat_loop(config: ReportingConfig, machine_id: String) {
+    start_heartbeat(config, machine_id).await;
+}
+
+async fn agent_loop(
+    ctl: Arc<Mutex<SystemController>>,
+    reporting_cfg: ReportingConfig,
+    agent_cfg: AgentConfig,
+) {
     loop {
         let mut lo = ctl.lock().await;
 
@@ -72,7 +91,7 @@ async fn agent_loop(ctl: Arc<Mutex<SystemController>>, config: AgentConfig) {
 
         drop(lo);
 
-        sleep(Duration::from_millis(config.get_interval())).await;
+        sleep(Duration::from_millis(agent_cfg.get_interval())).await;
     }
 }
 

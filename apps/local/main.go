@@ -14,6 +14,7 @@ import (
 	camplocal "github.com/awlsring/camp/packages/camp_local"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -24,6 +25,7 @@ var doc []byte
 
 func main() {
 	server.Run(func(ctx context.Context, lg *zap.Logger) error {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		if err := godotenv.Load(); err != nil {
 			log.Fatal().Err(err).Msg("Error loading .env file")
 		}
@@ -81,7 +83,7 @@ func main() {
 		}
 
 		mux := http.NewServeMux()
-		mux.Handle("/", http.StripPrefix("/api/v1", srv))
+		mux.Handle("/", srv)
 		mux.Handle("/swagger/", server.SwaggerUIHandler())
 		mux.Handle("/swagger/swagger.json", server.SwaggerAPIv1Handler(doc))
 		g, ctx := errgroup.WithContext(ctx)

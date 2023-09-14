@@ -8,11 +8,18 @@ use aws_smithy_http_server::{
     AddExtensionLayer,
 };
 
+use camp_agent_client::operation::get_volume_utilization;
 use log::{error, info};
 use tokio::sync::Mutex;
 
 use crate::{
-    config::ServerConfig, server::operation::overview::get_overview,
+    config::ServerConfig,
+    server::operation::{
+        cpu_utilization::get_cpu_utilization, disk_utilization::get_disk_utilization,
+        memory_utilization::get_memory_utilization,
+        network_utilization::get_network_interface_utilization, overview::get_overview,
+        uptime::get_uptime, volume_utilization::get_volume_utilization,
+    },
     stats::controller::SystemController,
 };
 
@@ -22,15 +29,6 @@ use smithy_common::print::plugin::PrintExt;
 
 use camp_agent_server::CampAgent;
 use camp_agent_server::{error, input, output};
-
-// use super::operation::cpu::get_cpu;
-// use super::operation::memory::get_memory;
-// use super::operation::network::get_network_interface;
-// use super::operation::network::list_network_interfaces;
-// use super::operation::overview::get_overview;
-// use super::operation::system::get_system;
-// use super::operation::volume::get_volume;
-// use super::operation::volume::list_volumes;
 
 pub const DEFAULT_ADDRESS: &str = "0.0.0.0";
 
@@ -66,6 +64,12 @@ pub async fn start_server(ctl: Arc<Mutex<SystemController>>, config: ServerConfi
     let app = CampAgent::builder_with_plugins(plugins, IdentityPlugin)
         .health(check_health)
         .get_overview(get_overview)
+        .get_cpu_utilization(get_cpu_utilization)
+        .get_memory_utilization(get_memory_utilization)
+        .get_disk_utilization(get_disk_utilization)
+        .get_network_interface_utilization(get_network_interface_utilization)
+        .get_volume_utilization(get_volume_utilization)
+        .get_uptime(get_uptime)
         .build()
         .expect("failed to build an instance of GethAgent");
 

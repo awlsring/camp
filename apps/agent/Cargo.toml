@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-prost = "0.11"
+prost = "0.12"
 tokio = { version = "1.28.2", features = ["full"] }
 sysinfo = "0.29.2"
 network-interface = "1.0.1"
@@ -16,6 +16,7 @@ hyper = { version = "0.14.26", features = ["server"] }
 # Local paths
 smithy_common = { path = "../../packages/smithy_common" }
 camp_agent_client = { path = "../../packages/camp_agent_client" }
+camp_local_rs = { path = "../../packages/camp_local_rs" }
 camp_agent_server = { path = "../../packages/camp_agent_server" }
 hw_info = { path = "../../packages/hw_info" }
 containers = { path = "../../packages/containers" }
@@ -28,7 +29,7 @@ pin-project-lite = "0.2.9"
 futures-util = "0.3.28"
 http = "0.2.9"
 http-body = "0.4.5"
-toml = "0.7.4"
+toml = "0.8.0"
 log = "0.4.19"
 env_logger = "0.10.0"
 daemonize = "0.5.0"

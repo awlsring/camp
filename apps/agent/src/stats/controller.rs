@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use sysinfo::SystemExt;
-use hw_info::{Disk, load_disks};
-use containers::{Containers, Container};
+use containers::{Container, Containers};
+use hw_info::{load_disks, Disk};
 use sysinfo::System as Sys;
+use sysinfo::SystemExt;
 
 use super::cpu::Cpu;
 use super::disk::Storage;
@@ -20,7 +20,7 @@ pub struct SystemController {
     network: Network,
     storage: Storage,
     disks: HashMap<String, Disk>,
-    containers: HashMap<String, Container>
+    containers: HashMap<String, Container>,
 }
 
 impl SystemController {
@@ -28,7 +28,7 @@ impl SystemController {
         let mut sys = Sys::new_all();
         sys.refresh_all();
         let container_controller = Containers::new();
-        
+
         let system = System::new(&sys);
         let memory = Memory::new(&sys);
         let cpu = Cpu::new(&sys);
@@ -118,12 +118,11 @@ impl SystemController {
     }
 
     async fn refresh_containers(&mut self) {
-        if let Some(ref mut container_controller) = self.container_controller {
-            let containers = container_controller.list_containers().await;
-            for container in containers {
-                self.containers.insert(container.id().to_string(), container);
-            }
-        }
+        // if let Some(ref mut container_controller) = self.container_controller {
+        //     let containers = container_controller.list_containers().await;
+        //     for container in containers {
+        //         self.containers.insert(container.id().to_string(), container);
+        //     }
+        // }
     }
-
 }
