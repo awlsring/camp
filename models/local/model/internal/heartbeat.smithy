@@ -3,6 +3,7 @@ $version: "2.0"
 namespace awlsring.camp.local
 
 use smithy.framework#ValidationException
+use awlsring.camp.common.exceptions#ResourceNotFoundException
 
 @documentation("Method called by agent machines to indicate they are still running. Only used internally.")
 @http(method: "POST", uri: "/internal/heartbeat", code: 200)
@@ -11,6 +12,7 @@ operation Heartbeat {
     output: HeartbeatOutput
     errors: [
         ValidationException
+        ResourceNotFoundException
     ]
 }
 

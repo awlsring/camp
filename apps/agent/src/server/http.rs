@@ -8,7 +8,6 @@ use aws_smithy_http_server::{
     AddExtensionLayer,
 };
 
-use camp_agent_client::operation::get_volume_utilization;
 use log::{error, info};
 use tokio::sync::Mutex;
 
@@ -16,7 +15,7 @@ use crate::{
     config::ServerConfig,
     server::operation::{
         cpu_utilization::get_cpu_utilization, disk_utilization::get_disk_utilization,
-        memory_utilization::get_memory_utilization,
+        health::check_health, memory_utilization::get_memory_utilization,
         network_utilization::get_network_interface_utilization, overview::get_overview,
         uptime::get_uptime, volume_utilization::get_volume_utilization,
     },
@@ -28,7 +27,6 @@ use smithy_common::auth::plugin::AuthExtension;
 use smithy_common::print::plugin::PrintExt;
 
 use camp_agent_server::CampAgent;
-use camp_agent_server::{error, input, output};
 
 pub const DEFAULT_ADDRESS: &str = "0.0.0.0";
 
@@ -45,14 +43,11 @@ impl State {
     }
 }
 
-pub async fn check_health(
-    _input: input::HealthInput,
-) -> Result<output::HealthOutput, error::HealthError> {
-    Ok(output::HealthOutput { success: true })
-}
-
-pub async fn start_server(ctl: Arc<Mutex<SystemController>>, config: ServerConfig) {
-    // TODO: Add config where keys can be stored and retrived
+pub async fn start_server(
+    ctl: Arc<Mutex<SystemController>>,
+    config: ServerConfig,
+    mut stop_rx: tokio::sync::watch::Receiver<()>,
+) {
     let auth_controller = AuthController::new(config.no_auth_operations(), config.allowed_keys());
 
     let plugins = PluginPipeline::new()
@@ -73,7 +68,6 @@ pub async fn start_server(ctl: Arc<Mutex<SystemController>>, config: ServerConfi
         .build()
         .expect("failed to build an instance of GethAgent");
 
-    // create state to add to request
     let state = State::new(ctl);
     let app = app
         .layer(&AddExtensionLayer::new(Arc::new(state)))
@@ -91,8 +85,11 @@ pub async fn start_server(ctl: Arc<Mutex<SystemController>>, config: ServerConfi
         .expect("unable to parse the server bind address and port");
     let server = hyper::Server::bind(&bind).serve(make_app);
 
-    // Run forever-ish...
-    if let Err(err) = server.await {
-        error!("server error: {}", err);
+    let graceful = server.with_graceful_shutdown(async {
+        stop_rx.changed().await.ok();
+    });
+
+    if let Err(e) = graceful.await {
+        error!("server error: {}", e);
     }
 }

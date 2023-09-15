@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/awlsring/camp/apps/local/machine"
 	camplocal "github.com/awlsring/camp/packages/camp_local"
@@ -32,6 +34,13 @@ func (h Handler) DescribeMachine(ctx context.Context, req camplocal.DescribeMach
 	log.Debug().Msg("Invoke Handler.DescribeMachine")
 	m, err := h.machine.DescribeMachine(ctx, req.Identifier)
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			log.Debug().Msgf("Machine with identifier %s not found", req.Identifier)
+			return &camplocal.ResourceNotFoundExceptionResponseContent{
+				Message: fmt.Sprintf("Machine with identifier %s not found", req.Identifier),
+			}, nil
+		}
+		log.Error().Err(err).Msgf("Failed to describe machine with identifier %s", req.Identifier)
 		return nil, err
 	}
 

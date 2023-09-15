@@ -1,7 +1,7 @@
 use std::io::Read;
 
-use sysinfo::SystemExt;
 use sysinfo::System as Sys;
+use sysinfo::SystemExt;
 
 use super::util::handle_optional_string;
 
@@ -20,7 +20,7 @@ pub struct System {
 fn get_machine_id() -> String {
     let mut machine_id = String::new();
     if let Ok(mut file) = std::fs::File::open("/etc/machine-id") {
-        if let Ok(_) = file.read_to_string(&mut machine_id) {
+        if file.read_to_string(&mut machine_id).is_ok() {
             machine_id = machine_id.trim().to_string();
         }
     }

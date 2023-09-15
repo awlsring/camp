@@ -12,6 +12,7 @@ serde = { version = "1.0.164", features = ["derive"] }
 tower = "0.4.13"
 clap = { version = "4.3.3", features = ["derive"] }
 hyper = { version = "0.14.26", features = ["server"] }
+serde_json = "1.0.64"
 
 # Local paths
 smithy_common = { path = "../../packages/smithy_common" }

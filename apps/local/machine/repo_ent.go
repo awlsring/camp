@@ -433,7 +433,8 @@ func modelToMachine(model *Model, create *ent.MachineCreate) *ent.MachineCreate 
 		SetState(machine.StateRunning).
 		SetLastHeartbeat(now).
 		SetRegisteredAt(now).
-		SetUpdatedAt(now)
+		SetUpdatedAt(now).
+		SetTags([]string{})
 }
 
 func modelToCpu(model *CpuModel, create *ent.CPUCreate) *ent.CPUCreate {
