@@ -16,7 +16,6 @@ use crate::stats::{
 };
 
 pub fn system_to_summary(system: &System) -> MachineSystemSummary {
-    let machine_id = system.machine_id().to_owned();
     let fam_opt = system.family().to_owned();
     let kernel = system.kernel_version().to_owned();
     let os = system.os().to_owned();
@@ -42,7 +41,10 @@ pub fn cpu_to_summary(cpu: &Cpu) -> MachineCpuSummary {
 
     let architecture = match arch.as_str() {
         "x86" => CpuArchitecture::X86,
+        "x86_64" => CpuArchitecture::X86,
         "arm" => CpuArchitecture::Arm,
+        "armv7" => CpuArchitecture::Arm,
+        "aarch64" => CpuArchitecture::Arm,
         _ => CpuArchitecture::Unknown,
     };
 

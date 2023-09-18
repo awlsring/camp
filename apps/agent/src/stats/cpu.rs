@@ -1,5 +1,5 @@
-use sysinfo::{System, SystemExt, CpuExt};
-use std::{env::consts::ARCH, collections::HashMap};
+use std::{collections::HashMap, env::consts::ARCH};
+use sysinfo::{CpuExt, System, SystemExt};
 
 use super::util;
 
@@ -34,8 +34,6 @@ pub struct Cpu {
 impl Cpu {
     pub fn new(system: &System) -> Cpu {
         let arch = String::from(ARCH);
-        
-        
 
         let cpu = &system.cpus()[0];
 
@@ -101,6 +99,3 @@ impl Cpu {
         &self.brand
     }
 }
-
-
-

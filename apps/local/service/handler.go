@@ -32,9 +32,10 @@ func (h Handler) Health(ctx context.Context) (camplocal.HealthRes, error) {
 
 func (h Handler) DescribeMachine(ctx context.Context, req camplocal.DescribeMachineParams) (camplocal.DescribeMachineRes, error) {
 	log.Debug().Msg("Invoke Handler.DescribeMachine")
+	log.Debug().Msgf("Identifier: %s", req.Identifier)
 	m, err := h.machine.DescribeMachine(ctx, req.Identifier)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+		if strings.Contains(err.Error(), "no rows in result set") {
 			log.Debug().Msgf("Machine with identifier %s not found", req.Identifier)
 			return &camplocal.ResourceNotFoundExceptionResponseContent{
 				Message: fmt.Sprintf("Machine with identifier %s not found", req.Identifier),
@@ -53,6 +54,7 @@ func (h Handler) ListMachines(ctx context.Context) (camplocal.ListMachinesRes, e
 	log.Debug().Msg("Invoke ListMachines")
 	m, err := h.machine.ListMachines(ctx, nil)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to list machines")
 		return nil, err
 	}
 
@@ -70,6 +72,7 @@ func (h Handler) Heartbeat(ctx context.Context, req *camplocal.HeartbeatRequestC
 	log.Debug().Msg("Invoke Heartbeat")
 	err := h.machine.AcknowledgeHeartbeat(ctx, req.InternalIdentifier)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to acknowledge heartbeat")
 		return nil, err
 	}
 	return &camplocal.HeartbeatResponseContent{
@@ -79,9 +82,11 @@ func (h Handler) Heartbeat(ctx context.Context, req *camplocal.HeartbeatRequestC
 
 func (h Handler) Register(ctx context.Context, req *camplocal.RegisterRequestContent) (camplocal.RegisterRes, error) {
 	log.Debug().Msg("Invoke Register")
+	log.Debug().Msgf("Summary: %+v", req.Summary)
 	model := reportedMachineSummaryToModel(&req.Summary)
 	err := h.machine.RegisterMachine(ctx, model)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to register machine")
 		return nil, err
 	}
 	return &camplocal.RegisterResponseContent{
@@ -93,6 +98,7 @@ func (h Handler) ReportStatusChange(ctx context.Context, req *camplocal.ReportSt
 	log.Debug().Msg("Invoke ReportStatusChange")
 	err := h.machine.UpdateStatus(ctx, req.InternalIdentifier, machine.MachineStatus(req.Status))
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to update machine status")
 		return nil, err
 	}
 	return &camplocal.ReportStatusChangeResponseContent{
@@ -105,6 +111,7 @@ func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSy
 	model := reportedMachineSummaryToModel(&req.Summary)
 	err := h.machine.UpdateMachine(ctx, model)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to update machine")
 		return nil, err
 	}
 	return &camplocal.ReportSystemChangeResponseContent{

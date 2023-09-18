@@ -2,8 +2,8 @@ $version: "2.0"
 
 namespace awlsring.camp.local
 
-use smithy.framework#ValidationException
 use awlsring.camp.common.exceptions#ResourceNotFoundException
+use smithy.framework#ValidationException
 
 @documentation("Method called by agent machines to report a to their system. Internal use only.")
 @http(method: "POST", uri: "/internal/change/system", code: 200)

@@ -172,13 +172,13 @@ fn system_decription_to_summary(description: SystemDescription) -> ReportedMachi
     };
 
     let mut disks = vec![];
-    for disk in description.disks {
+    for disk in description.disks.iter() {
         disks.push(disk_description_to_disk_summary(disk.to_owned()));
     }
 
     let mut addrs = vec![];
     let mut nics = vec![];
-    for net in description.network {
+    for net in description.network.iter() {
         let n = network_description_to_network_summary(net.to_owned());
         nics.push(n.clone());
         for address in n.addresses().iter() {
@@ -189,7 +189,7 @@ fn system_decription_to_summary(description: SystemDescription) -> ReportedMachi
     }
 
     let mut volumes = vec![];
-    for vol in description.volumes {
+    for vol in description.volumes.iter() {
         volumes.push(volume_description_to_volume_summary(vol.to_owned()));
     }
 
@@ -224,6 +224,7 @@ fn host_description_to_system_summary(description: HostDescription) -> MachineSy
 fn cpu_description_to_cpu_summary(description: CpuDescription) -> MachineCpuSummary {
     let arch = match description.architecture.to_lowercase().as_str() {
         "x86" => CpuArchitecture::X86,
+        "x86_64" => CpuArchitecture::X86,
         "arm" => CpuArchitecture::Arm,
         _ => CpuArchitecture::UnknownValue,
     };

@@ -51,7 +51,7 @@ impl SystemController {
 
         SystemController {
             system_controller: sys,
-            container_controller: container_controller,
+            container_controller,
             system,
             memory,
             cpu,
@@ -86,16 +86,12 @@ impl SystemController {
         &self.disks
     }
 
-    pub fn containers(&self) -> &HashMap<String, Container> {
-        &self.containers
-    }
-
     pub(crate) fn get_system_description(&self) -> SystemDescription {
         let mut disks = vec![];
         for disk in self.disks.values() {
             disks.push(DiskDescription {
                 device: disk.get_device().to_string(),
-                size: disk.get_size_actual().to_owned() as i64,
+                size: disk.get_size_actual().to_owned(),
                 model: disk.get_model().to_string(),
                 vendor: disk.get_vendor().to_string(),
                 interface_type: match disk.get_interface() {
@@ -105,11 +101,12 @@ impl SystemController {
                     _ => "Unknown".to_string(),
                 },
                 serial_number: disk.get_serial().to_string(),
-                size_raw: disk.get_size_raw().to_owned() as i64,
+                size_raw: disk.get_size_raw().to_owned(),
                 sector_size: disk.get_sector_size().to_owned(),
                 disk_type: match disk.get_kind() {
                     hw_info::DiskKind::HDD => "HDD".to_string(),
                     hw_info::DiskKind::SSD => "SSD".to_string(),
+                    hw_info::DiskKind::NVME => "SSD".to_string(),
                     _ => "Unknown".to_string(),
                 },
             });

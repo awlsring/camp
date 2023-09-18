@@ -78,6 +78,7 @@ async fn check_registration(client: Arc<ReportingClient>, description: SystemDes
     {
         Ok(registered) => {
             if !registered {
+                debug!("machine is not registered, registering");
                 client.register(description).await;
             }
         }

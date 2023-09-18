@@ -12,6 +12,7 @@ import (
 	"github.com/awlsring/camp/apps/local/service"
 	"github.com/awlsring/camp/internal/pkg/server"
 	camplocal "github.com/awlsring/camp/packages/camp_local"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -64,7 +65,16 @@ func main() {
 			UseSsl:   false,
 		}
 
-		machineRepo := machine.NewRepo(dbConfig)
+		pgDb, err := sqlx.Connect("postgres", machine.CreatePostgresConnectionString(dbConfig))
+		if err != nil {
+			return errors.Wrap(err, "postgres")
+		}
+		defer pgDb.Close()
+
+		machineRepo, err := machine.NewPqRepo(pgDb)
+		if err != nil {
+			return errors.Wrap(err, "machine repo")
+		}
 		machineController := machine.NewController(machineRepo)
 
 		srv, err := camplocal.NewServer(service.NewHandler(machineController),

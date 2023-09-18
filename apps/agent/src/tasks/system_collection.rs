@@ -13,7 +13,7 @@ use crate::reporting::client::ReportingClient;
 
 async fn write_snapshot(path: &str, snapshot_data: String) {
     debug!("Writing snapshot to file");
-    let file_name = format!("system_snapshot.json");
+    let file_name = "system_snapshot.json".to_string();
     let file_path = path::Path::new(path).join(file_name);
     if let Ok(mut file) = File::create(file_path) {
         if let Err(e) = file.write_all(snapshot_data.as_bytes()) {

@@ -12,3 +12,4 @@ models/**/database/ent
 .smithy*
 packages/camp_*
 apps/**/build
+system_snapshot.json
