@@ -1,8 +1,10 @@
-package machine
+package repo
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/awlsring/camp/apps/local/machine"
 )
 
 type GetMachinesFilters struct {
@@ -19,13 +21,13 @@ type RepoConfig struct {
 }
 
 type Repo interface {
-	GetMachineById(ctx context.Context, id string) (*Model, error)
-	GetMachines(ctx context.Context, filters *GetMachinesFilters) ([]*Model, error)
-	CreateMachine(ctx context.Context, m *Model) error
-	UpdateMachine(ctx context.Context, m *Model) error
+	GetMachineById(ctx context.Context, id string) (*machine.Model, error)
+	GetMachines(ctx context.Context, filters *GetMachinesFilters) ([]*machine.Model, error)
+	CreateMachine(ctx context.Context, m *machine.Model) error
+	UpdateMachine(ctx context.Context, m *machine.Model) error
 	// DeleteMachine(ctx context.Context, id string) error
 	AcknowledgeHeartbeat(ctx context.Context, id string) error
-	UpdateStatus(ctx context.Context, id string, status MachineStatus) error
+	UpdateStatus(ctx context.Context, id string, status machine.MachineStatus) error
 }
 
 func CreatePostgresConnectionString(config RepoConfig) string {

@@ -8,7 +8,8 @@ import (
 
 	_ "embed"
 
-	"github.com/awlsring/camp/apps/local/machine"
+	"github.com/awlsring/camp/apps/local/machine/controller"
+	"github.com/awlsring/camp/apps/local/machine/repo"
 	"github.com/awlsring/camp/apps/local/service"
 	"github.com/awlsring/camp/internal/pkg/server"
 	camplocal "github.com/awlsring/camp/packages/camp_local"
@@ -55,7 +56,7 @@ func main() {
 		dbUser := os.Getenv("DB_USER")
 		dbPassword := os.Getenv("DB_PASSWORD")
 
-		dbConfig := machine.RepoConfig{
+		dbConfig := repo.RepoConfig{
 			Driver:   "postgres",
 			Host:     dbHost,
 			Port:     5432,
@@ -65,17 +66,17 @@ func main() {
 			UseSsl:   false,
 		}
 
-		pgDb, err := sqlx.Connect("postgres", machine.CreatePostgresConnectionString(dbConfig))
+		pgDb, err := sqlx.Connect("postgres", repo.CreatePostgresConnectionString(dbConfig))
 		if err != nil {
 			return errors.Wrap(err, "postgres")
 		}
 		defer pgDb.Close()
 
-		machineRepo, err := machine.NewPqRepo(pgDb)
+		machineRepo, err := repo.NewPqRepo(pgDb)
 		if err != nil {
 			return errors.Wrap(err, "machine repo")
 		}
-		machineController := machine.NewController(machineRepo)
+		machineController := controller.NewController(machineRepo)
 
 		srv, err := camplocal.NewServer(service.NewHandler(machineController),
 			service.SecurityHandler("a", []string{"a"}),

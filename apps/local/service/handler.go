@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/awlsring/camp/apps/local/machine"
+	mcontroller "github.com/awlsring/camp/apps/local/machine/controller"
 	camplocal "github.com/awlsring/camp/packages/camp_local"
 	"github.com/rs/zerolog/log"
 )
@@ -14,10 +15,10 @@ import (
 var _ camplocal.Handler = (*Handler)(nil)
 
 type Handler struct {
-	machine machine.Controller
+	machine mcontroller.Controller
 }
 
-func NewHandler(m machine.Controller) camplocal.Handler {
+func NewHandler(m mcontroller.Controller) camplocal.Handler {
 	return Handler{
 		machine: m,
 	}
@@ -57,9 +58,11 @@ func (h Handler) ListMachines(ctx context.Context) (camplocal.ListMachinesRes, e
 		log.Error().Err(err).Msg("Failed to list machines")
 		return nil, err
 	}
+	log.Debug().Msgf("Found %d machines", len(m))
 
 	var summaries []camplocal.MachineSummary
 	for _, machine := range m {
+		log.Debug().Msgf("Converting machine: %+v", machine)
 		summaries = append(summaries, modelToSummary(machine))
 	}
 

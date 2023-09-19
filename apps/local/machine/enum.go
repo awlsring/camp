@@ -13,6 +13,23 @@ const (
 	MachineStatusUnknown MachineStatus = "Unknown"
 )
 
+func MachineStatusFromString(v string) MachineStatus {
+	switch strings.ToLower(v) {
+	case "running":
+		return Running
+	case "stopped":
+		return Stopped
+	case "stopping":
+		return Stopping
+	case "starting":
+		return Starting
+	case "restarting":
+		return Restarting
+	default:
+		return MachineStatusUnknown
+	}
+}
+
 type MachineClass string
 
 const (
@@ -22,41 +39,8 @@ const (
 	MachineClassUnknown MachineClass = "Unknown"
 )
 
-type CpuArchitecture string
-
-const (
-	X86                    CpuArchitecture = "x86"
-	Arm                    CpuArchitecture = "arm"
-	CpuArchitectureUnknown CpuArchitecture = "Unknown"
-)
-
-type DiskInterface string
-
-const (
-	SATA                 DiskInterface = "SATA"
-	SCSI                 DiskInterface = "SCSI"
-	PCIe                 DiskInterface = "PCIe"
-	DiskInterfaceUnknown DiskInterface = "Unknown"
-)
-
-type DiskType string
-
-const (
-	HDD             DiskType = "HDD"
-	SSD             DiskType = "SSD"
-	DiskTypeUnknown DiskType = "Unknown"
-)
-
-type IpAddressType string
-
-const (
-	V4                   IpAddressType = "v4"
-	V6                   IpAddressType = "v6"
-	IpAddressTypeUnknown IpAddressType = "Unknown"
-)
-
-func strToMachineClass(s string) MachineClass {
-	switch strings.ToLower(s) {
+func MachineClassFromString(v string) MachineClass {
+	switch strings.ToLower(v) {
 	case "baremetal":
 		return BareMetal
 	case "virtualmachine":
@@ -68,19 +52,36 @@ func strToMachineClass(s string) MachineClass {
 	}
 }
 
-func strToCpuArchitecture(s string) CpuArchitecture {
-	switch strings.ToLower(s) {
-	case "x86":
+type CpuArchitecture string
+
+const (
+	X86                    CpuArchitecture = "x86"
+	Arm                    CpuArchitecture = "arm"
+	CpuArchitectureUnknown CpuArchitecture = "Unknown"
+)
+
+func CpuArchitectureFromString(v string) CpuArchitecture {
+	switch strings.ToLower(v) {
+	case "x86", "x86_64":
 		return X86
-	case "arm":
+	case "arm", "armv7", "armv8":
 		return Arm
 	default:
 		return CpuArchitectureUnknown
 	}
 }
 
-func strToDiskInterface(s string) DiskInterface {
-	switch strings.ToLower(s) {
+type DiskInterface string
+
+const (
+	SATA                 DiskInterface = "SATA"
+	SCSI                 DiskInterface = "SCSI"
+	PCIe                 DiskInterface = "PCIe"
+	DiskInterfaceUnknown DiskInterface = "Unknown"
+)
+
+func DiskInterfaceFromString(v string) DiskInterface {
+	switch strings.ToLower(v) {
 	case "sata":
 		return SATA
 	case "scsi":
@@ -92,8 +93,16 @@ func strToDiskInterface(s string) DiskInterface {
 	}
 }
 
-func strToDiskType(s string) DiskType {
-	switch strings.ToLower(s) {
+type DiskType string
+
+const (
+	HDD             DiskType = "HDD"
+	SSD             DiskType = "SSD"
+	DiskTypeUnknown DiskType = "Unknown"
+)
+
+func DiskTypeFromString(v string) DiskType {
+	switch strings.ToLower(v) {
 	case "hdd":
 		return HDD
 	case "ssd":
@@ -103,11 +112,19 @@ func strToDiskType(s string) DiskType {
 	}
 }
 
-func strToIpAddressType(s string) IpAddressType {
-	switch strings.ToLower(s) {
-	case "v4":
+type IpAddressType string
+
+const (
+	V4                   IpAddressType = "v4"
+	V6                   IpAddressType = "v6"
+	IpAddressTypeUnknown IpAddressType = "Unknown"
+)
+
+func IpAddressTypeFromString(v string) IpAddressType {
+	switch strings.ToLower(v) {
+	case "ipv4", "v4":
 		return V4
-	case "v6":
+	case "ipv6", "v6":
 		return V6
 	default:
 		return IpAddressTypeUnknown

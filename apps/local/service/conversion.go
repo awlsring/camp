@@ -73,11 +73,13 @@ func machineDiskSummariesToModels(sums []camplocal.MachineDiskSummary) []*machin
 }
 
 func machineNetworkInterfaceSummaryToModel(sum camplocal.MachineNetworkInterfaceSummary) *machine.NetworkInterfaceModel {
+	addresses := machineAddressSummariesToModels(sum.Addresses)
+
 	mtu := int(sum.Mtu.Value)
 	speed := int(sum.Speed.Value)
 	return &machine.NetworkInterfaceModel{
 		Name:        sum.Name,
-		IpAddresses: []*machine.AddressModel{},
+		IpAddresses: addresses,
 		Virtual:     sum.Virtual,
 		MacAddress:  &sum.MacAddress.Value,
 		Vendor:      &sum.Vendor.Value,
