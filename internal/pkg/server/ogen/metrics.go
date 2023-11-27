@@ -1,4 +1,4 @@
-package server
+package ogen_server
 
 import (
 	"context"
@@ -23,7 +23,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -38,12 +37,6 @@ type Metrics struct {
 	resource *resource.Resource
 	mux      *http.ServeMux
 	srv      *http.Server
-}
-
-// Config for metrics.
-type Config struct {
-	Addr string // address for metrics server, optional
-	Name string // default name of the service, optional
 }
 
 func (m *Metrics) registerProfiler() {
@@ -102,7 +95,7 @@ func (m *Metrics) registerRoot() {
 	})
 }
 
-func (m *Metrics) Run(ctx context.Context) error {
+func (m *Metrics) Start(ctx context.Context) error {
 	wg, ctx := errgroup.WithContext(ctx)
 
 	wg.Go(func() error {
@@ -123,22 +116,23 @@ func (m *Metrics) Run(ctx context.Context) error {
 	return wg.Wait()
 }
 
+func (m *Metrics) Stop(ctx context.Context) error {
+	return nil
+}
+
 // NewMetrics returns new Metrics.
-func NewMetrics(log *zap.Logger, cfg Config) (*Metrics, error) {
-	if cfg.Addr == "" {
-		cfg.Addr = os.Getenv("METRICS_ADDR")
-	}
-	if cfg.Addr == "" {
-		cfg.Addr = "127.0.0.1:9090"
+func NewMetrics(addr, namespace string) (*Metrics, error) {
+	if addr == "" {
+		addr = "127.0.0.1:9090"
 	}
 
 	// The Resource uses environmental variables for default resource attributes:
 	//
 	// - OTEL_RESOURCE_ATTRIBUTES
 	// - OTEL_SERVICE_NAME
-	if _, ok := os.LookupEnv("OTEL_SERVICE_NAME"); !ok && cfg.Name != "" {
+	if _, ok := os.LookupEnv("OTEL_SERVICE_NAME"); !ok && namespace != "" {
 		// Default service name to provided name.
-		_ = os.Setenv("OTEL_SERVICE_NAME", cfg.Name)
+		_ = os.Setenv("OTEL_SERVICE_NAME", namespace)
 	}
 	res := resource.Default()
 
@@ -189,13 +183,13 @@ func NewMetrics(log *zap.Logger, cfg Config) (*Metrics, error) {
 		mux:      mux,
 		srv: &http.Server{
 			Handler: mux,
-			Addr:    cfg.Addr,
+			Addr:    addr,
 		},
 	}
 
 	// Register global OTEL providers.
 	otel.SetMeterProvider(m.MeterProvider())
-	otel.SetTracerProvider(m.tracerProvider)
+	otel.SetTracerProvider(m.TracerProvider())
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{}, propagation.Baggage{},
@@ -205,11 +199,6 @@ func NewMetrics(log *zap.Logger, cfg Config) (*Metrics, error) {
 	m.registerRoot()
 	m.registerProfiler()
 	m.registerPrometheus()
-
-	log.Info("Metrics initialized",
-		zap.Stringer("otel.resource", res),
-		zap.String("http.addr", cfg.Addr),
-	)
 
 	return m, nil
 }

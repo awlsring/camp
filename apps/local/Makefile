@@ -14,6 +14,7 @@ codegen:
 	cd ${SRC_DIR}/models/local && smithy format model && smithy build
 	@echo "Generating the local api go server and client"
 	mkdir -p $(SDK_DST)
+	go mod download golang.org/x/mod # tpm hack, fix this later
 	go mod download golang.org/x/tools # tpm hack, fix this later
 	go run github.com/ogen-go/ogen/cmd/ogen --target $(SDK_DST) -package camplocal --clean $(OPEN_API_MODEL)
 	@echo "Generating the local api rust client"
@@ -27,6 +28,7 @@ codegen:
 build: codegen
 	@echo "Building Camp Local app"
 	go mod tidy
-	go build -o $(CUR_DIR)/build/camplocal $(CUR_DIR)/main.go
+	@echo "Building Camp Local Rest API"
+	go build -o $(CUR_DIR)/build/bin/camplocalrest $(CUR_DIR)/cmd/ogen/main.go
 
 .PHONY: all

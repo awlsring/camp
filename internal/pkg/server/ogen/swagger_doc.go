@@ -1,4 +1,4 @@
-package server
+package ogen_server
 
 import (
 	"bytes"
