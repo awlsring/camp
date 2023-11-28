@@ -3,6 +3,7 @@ package errors
 import "fmt"
 
 var (
+	ErrInternalFailure  = fmt.Errorf("internal failure")
 	ErrResourceNotFound = fmt.Errorf("resource not found")
 	ErrUnathorized      = fmt.Errorf("unauthorized")
 	ErrValidation       = fmt.Errorf("validation error")

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/awlsring/camp/apps/local/internal/core/ports/service"
+	"github.com/awlsring/camp/apps/local/internal/ports/service"
 	camplocal "github.com/awlsring/camp/packages/camp_local"
 )
 

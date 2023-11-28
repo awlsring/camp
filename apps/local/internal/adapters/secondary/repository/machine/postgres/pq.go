@@ -3,10 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
-	"github.com/awlsring/camp/apps/local/internal/core/ports/repository"
+	"github.com/awlsring/camp/apps/local/internal/ports/repository"
 
 	_ "github.com/lib/pq"
 
@@ -172,6 +173,9 @@ func (r *PostgresRepo) Get(ctx context.Context, id machine.Identifier) (*machine
 	var mdb MachineSql
 	err := r.database.GetContext(ctx, &mdb, "SELECT * FROM machines WHERE identifier = $1", id)
 	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			return nil, repository.ErrMachineNotFound
+		}
 		return nil, err
 	}
 	err = r.enrichMachineEntry(ctx, &mdb)

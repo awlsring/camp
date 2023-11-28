@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrMachineNotFound = errors.New("user does not exist")
+	ErrInternalFailure = errors.New("internal error")
 )
 
 type ListMachinesFilters struct{}
