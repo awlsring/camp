@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) describeMachineErrorHandler(err error) (camplocal.DescribeMachineRes, error) {
-	var campErr camperror.Error
+	var campErr *camperror.Error
 	if errors.As(err, &campErr) {
 		e := campErr.CampError()
 		switch e {

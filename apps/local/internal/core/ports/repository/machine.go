@@ -19,6 +19,6 @@ type Machine interface {
 	Add(ctx context.Context, m *machine.Machine) error
 	Delete(ctx context.Context, id machine.Identifier) error
 	Update(ctx context.Context, m *machine.Machine) error
-	UpdateHeartbeat(ctx context.Context, id machine.InternalIdentifier) error
-	UpdateStatus(ctx context.Context, id machine.InternalIdentifier, status machine.MachineStatus) error
+	UpdateHeartbeat(ctx context.Context, id machine.Identifier) error
+	UpdateStatus(ctx context.Context, id machine.Identifier, status machine.MachineStatus) error
 }

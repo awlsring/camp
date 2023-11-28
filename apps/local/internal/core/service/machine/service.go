@@ -22,13 +22,11 @@ func NewMachineService(repo repository.Machine) service.Machine {
 	}
 }
 
-func (s *machineService) RegisterMachine(ctx context.Context, iid machine.InternalIdentifier, class machine.MachineClass, sys *machine.System, cpu *machine.Cpu, mem *machine.Memory, disks []*machine.Disk, nics []*machine.NetworkInterface, vols []*machine.Volume, ips []*machine.IpAddress) error {
+func (s *machineService) RegisterMachine(ctx context.Context, id machine.Identifier, class machine.MachineClass, sys *machine.System, cpu *machine.Cpu, mem *machine.Memory, disks []*machine.Disk, nics []*machine.NetworkInterface, vols []*machine.Volume, ips []*machine.IpAddress) error {
 	log.Debug().Msg("Invoke Controller.RegisterMachine")
 
-	id := machine.NewIdentifier(iid)
-
 	now := time.Now()
-	machine := machine.NewMachine(id, iid, class, now, now, now, machine.MachineStatusRunning, sys, cpu, mem, disks, nics, vols, ips)
+	machine := machine.NewMachine(id, class, now, now, now, machine.MachineStatusRunning, sys, cpu, mem, disks, nics, vols, ips)
 
 	return s.repo.Add(ctx, machine)
 }
@@ -43,16 +41,16 @@ func (s *machineService) ListMachines(ctx context.Context) ([]*machine.Machine, 
 	return s.repo.List(ctx, nil)
 }
 
-func (s *machineService) AcknowledgeHeartbeat(ctx context.Context, id machine.InternalIdentifier) error {
+func (s *machineService) AcknowledgeHeartbeat(ctx context.Context, id machine.Identifier) error {
 	log.Debug().Msg("Invoke Controller.AcknowledgeHeartbeat")
 	return s.repo.UpdateHeartbeat(ctx, id)
 }
 
-func (s *machineService) UpdateStatus(ctx context.Context, id machine.InternalIdentifier, status machine.MachineStatus) error {
+func (s *machineService) UpdateStatus(ctx context.Context, id machine.Identifier, status machine.MachineStatus) error {
 	log.Debug().Msg("Invoke Controller.UpdateStatus")
 	return s.repo.UpdateStatus(ctx, id, status)
 }
 
-func (s *machineService) ReportSystemChange(ctx context.Context, id machine.InternalIdentifier, class machine.MachineClass, sys *machine.System, cpu *machine.Cpu, mem *machine.Memory, disks []*machine.Disk, nics []*machine.NetworkInterface, vols []*machine.Volume, ips []*machine.IpAddress) error {
+func (s *machineService) ReportSystemChange(ctx context.Context, id machine.Identifier, class machine.MachineClass, sys *machine.System, cpu *machine.Cpu, mem *machine.Memory, disks []*machine.Disk, nics []*machine.NetworkInterface, vols []*machine.Volume, ips []*machine.IpAddress) error {
 	panic("not implemented")
 }

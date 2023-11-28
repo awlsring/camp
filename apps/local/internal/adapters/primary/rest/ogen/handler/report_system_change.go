@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) reportSystemChangeErrorHandler(err error) (camplocal.ReportSystemChangeRes, error) {
-	var campErr camperror.Error
+	var campErr *camperror.Error
 	if errors.As(err, &campErr) {
 		e := campErr.CampError()
 		switch e {
@@ -32,7 +32,7 @@ func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSy
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("Invoke ReportSystemChange")
 
-	iid, err := machine.InternalIdentifierFromString(req.Summary.InternalIdentifier)
+	id, err := machine.IdentifierFromString(req.Summary.InternalIdentifier)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.Summary.InternalIdentifier)
 		return h.reportSystemChangeErrorHandler(err)
@@ -40,7 +40,7 @@ func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSy
 
 	class, err := machine.MachineClassFromString(string(req.Summary.GetClass().Value))
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class)
+		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class.Value)
 		return h.reportSystemChangeErrorHandler(err)
 	}
 
@@ -72,7 +72,7 @@ func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSy
 		return h.reportSystemChangeErrorHandler(err)
 	}
 
-	err = h.mSvc.ReportSystemChange(ctx, iid, class, sys, cpu, mem, disk, nic, vol, ips)
+	err = h.mSvc.ReportSystemChange(ctx, id, class, sys, cpu, mem, disk, nic, vol, ips)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to update machine")
 		return nil, err

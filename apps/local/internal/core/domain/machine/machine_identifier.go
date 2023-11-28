@@ -2,7 +2,6 @@ package machine
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 
 	camperror "github.com/awlsring/camp/internal/pkg/errors"
@@ -18,10 +17,6 @@ var (
 )
 
 type Identifier string
-
-func NewIdentifier(internalIdentifier InternalIdentifier) Identifier {
-	return Identifier(fmt.Sprintf("m-%s", internalIdentifier.String()))
-}
 
 func IdentifierFromString(identifier string) (Identifier, error) {
 	re := regexp.MustCompile(MachineIdentifierPattern)

@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) reportStatusChangeErrorHandler(err error) (camplocal.ReportStatusChangeRes, error) {
-	var campErr camperror.Error
+	var campErr *camperror.Error
 	if errors.As(err, &campErr) {
 		e := campErr.CampError()
 		switch e {
@@ -32,7 +32,7 @@ func (h *Handler) ReportStatusChange(ctx context.Context, req *camplocal.ReportS
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("Invoke ReportStatusChange")
 
-	iid, err := machine.InternalIdentifierFromString(req.InternalIdentifier)
+	id, err := machine.IdentifierFromString(req.InternalIdentifier)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.InternalIdentifier)
 		return h.reportStatusChangeErrorHandler(err)
@@ -44,7 +44,7 @@ func (h *Handler) ReportStatusChange(ctx context.Context, req *camplocal.ReportS
 		return h.reportStatusChangeErrorHandler(err)
 	}
 
-	err = h.mSvc.UpdateStatus(ctx, iid, status)
+	err = h.mSvc.UpdateStatus(ctx, id, status)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to update machine status")
 		return h.reportStatusChangeErrorHandler(err)

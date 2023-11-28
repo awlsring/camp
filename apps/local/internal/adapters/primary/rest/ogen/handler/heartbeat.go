@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) hearbeatErrorHandler(err error) (camplocal.HeartbeatRes, error) {
-	var campErr camperror.Error
+	var campErr *camperror.Error
 	if errors.As(err, &campErr) {
 		e := campErr.CampError()
 		switch e {
@@ -32,7 +32,7 @@ func (h *Handler) Heartbeat(ctx context.Context, req *camplocal.HeartbeatRequest
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("Invoke Heartbeat")
 
-	id, err := machine.InternalIdentifierFromString(req.InternalIdentifier)
+	id, err := machine.IdentifierFromString(req.InternalIdentifier)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.InternalIdentifier)
 		return h.hearbeatErrorHandler(err)

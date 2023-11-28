@@ -7,20 +7,19 @@ import (
 )
 
 type MachineSql struct {
-	Identifier         string    `db:"identifier"`
-	InternalIdentifier string    `db:"internal_identifier"`
-	Class              string    `db:"class"`
-	LastHeartbeat      time.Time `db:"last_heartbeat"`
-	RegisteredAt       time.Time `db:"registered_at"`
-	UpdatedAt          time.Time `db:"updated_at"`
-	Status             string    `db:"status"`
-	System             *SystemModelSql
-	Cpu                *CpuModelSql
-	Memory             *MemoryModelSql
-	Disks              []*DiskModelSql
-	NetworkInterfaces  []*NetworkInterfaceModelSql
-	Volumes            []*VolumeModelSql
-	Addresses          []*IpAddressModelSql
+	Identifier        string    `db:"identifier"`
+	Class             string    `db:"class"`
+	LastHeartbeat     time.Time `db:"last_heartbeat"`
+	RegisteredAt      time.Time `db:"registered_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
+	Status            string    `db:"status"`
+	System            *SystemModelSql
+	Cpu               *CpuModelSql
+	Memory            *MemoryModelSql
+	Disks             []*DiskModelSql
+	NetworkInterfaces []*NetworkInterfaceModelSql
+	Volumes           []*VolumeModelSql
+	Addresses         []*IpAddressModelSql
 }
 
 func (m *MachineSql) ToModel() (*machine.Machine, error) {
@@ -69,11 +68,6 @@ func (m *MachineSql) ToModel() (*machine.Machine, error) {
 		return nil, err
 	}
 
-	iid, err := machine.InternalIdentifierFromString(m.Identifier)
-	if err != nil {
-		return nil, err
-	}
-
 	class, err := machine.MachineClassFromString(m.Class)
 	if err != nil {
 		return nil, err
@@ -85,20 +79,19 @@ func (m *MachineSql) ToModel() (*machine.Machine, error) {
 	}
 
 	return &machine.Machine{
-		Identifier:         id,
-		InternalIdentifier: iid,
-		Class:              class,
-		LastHeartbeat:      m.LastHeartbeat,
-		RegisteredAt:       m.RegisteredAt,
-		UpdatedAt:          m.UpdatedAt,
-		Status:             status,
-		System:             system,
-		Cpu:                cpu,
-		Memory:             memory,
-		Disks:              disks,
-		NetworkInterfaces:  networkInterfaces,
-		Volumes:            volumes,
-		Addresses:          addresses,
+		Identifier:        id,
+		Class:             class,
+		LastHeartbeat:     m.LastHeartbeat,
+		RegisteredAt:      m.RegisteredAt,
+		UpdatedAt:         m.UpdatedAt,
+		Status:            status,
+		System:            system,
+		Cpu:               cpu,
+		Memory:            memory,
+		Disks:             disks,
+		NetworkInterfaces: networkInterfaces,
+		Volumes:           volumes,
+		Addresses:         addresses,
 	}, nil
 
 }

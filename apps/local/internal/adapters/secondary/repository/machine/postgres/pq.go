@@ -46,7 +46,6 @@ func (r *PostgresRepo) initTables() error {
 	createMachinesTable := `
 		CREATE TABLE IF NOT EXISTS machines (
 			identifier VARCHAR(64) PRIMARY KEY,
-			internal_identifier VARCHAR(64) NOT NULL,
 			class VARCHAR(255) NOT NULL,
 			last_heartbeat TIMESTAMP NOT NULL,
 			registered_at TIMESTAMP NOT NULL,
@@ -432,16 +431,16 @@ func (r *PostgresRepo) Update(ctx context.Context, m *machine.Machine) error {
 	return nil
 }
 
-func (r *PostgresRepo) UpdateHeartbeat(ctx context.Context, id machine.InternalIdentifier) error {
-	_, err := r.database.ExecContext(ctx, "UPDATE machines SET last_heartbeat = NOW() WHERE internal_identifier = $1", id)
+func (r *PostgresRepo) UpdateHeartbeat(ctx context.Context, id machine.Identifier) error {
+	_, err := r.database.ExecContext(ctx, "UPDATE machines SET last_heartbeat = NOW() WHERE identifier = $1", id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r PostgresRepo) UpdateStatus(ctx context.Context, id machine.InternalIdentifier, status machine.MachineStatus) error {
-	_, err := r.database.ExecContext(ctx, "UPDATE machines SET status = $1 WHERE internal_identifier = $2", status, id)
+func (r PostgresRepo) UpdateStatus(ctx context.Context, id machine.Identifier, status machine.MachineStatus) error {
+	_, err := r.database.ExecContext(ctx, "UPDATE machines SET status = $1 WHERE identifier = $2", status, id)
 	if err != nil {
 		return err
 	}
@@ -458,7 +457,7 @@ func (r *PostgresRepo) Delete(ctx context.Context, id machine.Identifier) error 
 
 func (r *PostgresRepo) createMachineEntry(ctx context.Context, m *machine.Machine) error {
 	now := time.Now()
-	_, err := r.database.ExecContext(ctx, "INSERT INTO machines (identifier, internal_identifier, class, last_heartbeat, registered_at, updated_at, status) VALUES ($1, $2, $3, $4, $5, $6)", m.Identifier, m.InternalIdentifier, m.Class, now, now, now, machine.MachineStatusRunning.String())
+	_, err := r.database.ExecContext(ctx, "INSERT INTO machines (identifier, class, last_heartbeat, registered_at, updated_at, status) VALUES ($1, $2, $3, $4, $5, $6)", m.Identifier, m.Class, now, now, now, machine.MachineStatusRunning.String())
 	if err != nil {
 		return err
 	}

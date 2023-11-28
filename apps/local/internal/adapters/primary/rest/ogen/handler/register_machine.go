@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) registerMachineErrorHandler(err error) (camplocal.RegisterRes, error) {
-	var campErr camperror.Error
+	var campErr *camperror.Error
 	if errors.As(err, &campErr) {
 		e := campErr.CampError()
 		switch e {
@@ -30,7 +30,7 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 	log.Debug().Msg("Invoke Register")
 	log.Debug().Msgf("Summary: %+v", req.Summary)
 
-	iid, err := machine.InternalIdentifierFromString(req.Summary.InternalIdentifier)
+	id, err := machine.IdentifierFromString(req.Summary.InternalIdentifier)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.Summary.InternalIdentifier)
 		return h.registerMachineErrorHandler(err)
@@ -38,7 +38,7 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 
 	class, err := machine.MachineClassFromString(string(req.Summary.GetClass().Value))
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class)
+		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class.Value)
 		return h.registerMachineErrorHandler(err)
 	}
 
@@ -70,7 +70,7 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 		return h.registerMachineErrorHandler(err)
 	}
 
-	err = h.mSvc.RegisterMachine(ctx, iid, class, sys, cpu, mem, disk, nic, vol, ips)
+	err = h.mSvc.RegisterMachine(ctx, id, class, sys, cpu, mem, disk, nic, vol, ips)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to register machine")
 		return h.registerMachineErrorHandler(err)
