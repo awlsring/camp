@@ -2,114 +2,95 @@ package main
 
 import (
 	"context"
-	"flag"
-	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	_ "embed"
 
-	"github.com/awlsring/camp/apps/local/machine/controller"
-	"github.com/awlsring/camp/apps/local/machine/repo"
-	"github.com/awlsring/camp/apps/local/service"
-	ogen_server "github.com/awlsring/camp/internal/pkg/server/ogen"
-	camplocal "github.com/awlsring/camp/packages/camp_local"
+	"github.com/awlsring/camp/apps/local/internal/adapters/primary/rest/ogen"
+	"github.com/awlsring/camp/apps/local/internal/adapters/primary/rest/ogen/handler"
+	"github.com/awlsring/camp/apps/local/internal/adapters/secondary/repository/machine/postgres"
+	"github.com/awlsring/camp/apps/local/internal/core/service/machine"
+	"github.com/awlsring/camp/internal/pkg/logger"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 )
 
 //go:embed swagger/swagger.json
 var doc []byte
 
 func main() {
-	ogen_server.Run(func(ctx context.Context, lg *zap.Logger) error {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-		if err := godotenv.Load(); err != nil {
-			log.Fatal().Err(err).Msg("Error loading .env file")
-		}
-		var arg struct {
-			Addr        string
-			MetricsAddr string
-		}
-		flag.StringVar(&arg.Addr, "addr", "127.0.0.1:8080", "listen address")
-		flag.StringVar(&arg.MetricsAddr, "metrics.addr", "127.0.0.1:9090", "metrics listen address")
-		flag.Parse()
+	ctx := logger.InitContextLogger(context.Background(), zerolog.DebugLevel)
+	log := logger.FromContext(ctx)
+	log.Info().Msg("Initializing")
 
-		lg.Info("Initializing",
-			zap.String("http.addr", arg.Addr),
-			zap.String("metrics.addr", arg.MetricsAddr),
-		)
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
 
-		m, err := ogen_server.NewMetrics(arg.MetricsAddr, "CampLocal")
-		if err != nil {
-			return errors.Wrap(err, "metrics")
-		}
+	dbConfig := postgres.RepoConfig{
+		Driver:   "postgres",
+		Host:     dbHost,
+		Port:     5432,
+		Username: dbUser,
+		Password: dbPassword,
+		Database: "camplocal",
+		UseSsl:   false,
+	}
 
-		dbHost := os.Getenv("DB_HOST")
-		dbUser := os.Getenv("DB_USER")
-		dbPassword := os.Getenv("DB_PASSWORD")
+	log.Info().Msg("Connecting to Postgres")
+	pgDb, err := sqlx.Connect("postgres", postgres.CreatePostgresConnectionString(dbConfig))
+	if err != nil {
+		panic(errors.Wrap(err, "postgres"))
+	}
+	defer pgDb.Close()
 
-		dbConfig := repo.RepoConfig{
-			Driver:   "postgres",
-			Host:     dbHost,
-			Port:     5432,
-			Username: dbUser,
-			Password: dbPassword,
-			Database: "camplocal",
-			UseSsl:   false,
-		}
+	log.Debug().Msg("Initializing Machine Repo")
+	machineRepo, err := postgres.NewPqRepo(pgDb)
+	if err != nil {
+		panic(errors.Wrap(err, "machine repo"))
+	}
+	log.Debug().Msg("Initializing Machine Service")
+	mSvc := machine.NewMachineService(machineRepo)
 
-		pgDb, err := sqlx.Connect("postgres", repo.CreatePostgresConnectionString(dbConfig))
-		if err != nil {
-			return errors.Wrap(err, "postgres")
-		}
-		defer pgDb.Close()
+	log.Debug().Msg("Initializing Handler")
+	hdl := handler.NewHandler(mSvc)
 
-		machineRepo, err := repo.NewPqRepo(pgDb)
-		if err != nil {
-			return errors.Wrap(err, "machine repo")
-		}
-		machineController := controller.NewController(machineRepo)
-
-		srv, err := camplocal.NewServer(service.NewHandler(machineController),
-			service.SecurityHandler("a", []string{"a"}),
-			camplocal.WithTracerProvider(m.TracerProvider()),
-			camplocal.WithMeterProvider(m.MeterProvider()),
-			camplocal.WithErrorHandler(ogen_server.SmithyErrorHandler),
-			camplocal.WithMiddleware(),
-		)
-		if err != nil {
-			return errors.Wrap(err, "server init")
-		}
-
-		mux := http.NewServeMux()
-		mux.Handle("/", srv)
-		mux.Handle("/swagger/", ogen_server.SwaggerUIHandler())
-		mux.Handle("/swagger/swagger.json", ogen_server.SwaggerAPIv1Handler(doc))
-		httpServer := http.Server{
-			Addr:    arg.Addr,
-			Handler: mux,
-		}
-		g, ctx := errgroup.WithContext(ctx)
-		g.Go(func() error {
-			return m.Start(ctx)
-		})
-		g.Go(func() error {
-			<-ctx.Done()
-			return httpServer.Shutdown(ctx)
-		})
-		g.Go(func() error {
-			defer lg.Info("Server stopped")
-			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				return errors.Wrap(err, "http")
-			}
-			return nil
-		})
-
-		return g.Wait()
+	log.Debug().Msg("Initializing Server")
+	srv, err := ogen.NewCampLocalServer(hdl, ogen.Config{
+		ServiceName:    "CampLocal",
+		MetricsAddress: "127.0.0.1:8032",
+		ApiAddress:     "127.0.0.1:7032",
+		ApiKeys:        []string{"a"},
+		AgentKeys:      []string{"a"},
 	})
+	if err != nil {
+		panic(errors.Wrap(err, "server init"))
+	}
+
+	log.Info().Msg("Starting Camp Local Server")
+	srv.Start(ctx)
+
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt)
+
+	// Start the HTTP server in a goroutine
+	go func() {
+		srv.Start(ctx)
+	}()
+
+	// Wait for an interrupt signal
+	<-stopChan
+	log.Info().Msg("Shutting down server")
+
+	// Create a context with a timeout to give outstanding requests a chance to finish
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	// Shutdown the server gracefully
+	if err := srv.Stop(ctx); err != nil {
+		panic(err)
+	}
 }

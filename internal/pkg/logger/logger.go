@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"runtime/debug"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -16,7 +17,7 @@ type LoggingOpt func(zctx zerolog.Context, ctx context.Context) zerolog.Context
 func InitContextLogger(ctx context.Context, lvl zerolog.Level, opts ...LoggingOpt) context.Context {
 	buildInfo, _ := debug.ReadBuildInfo()
 
-	logger := FromContext(ctx)
+	logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 	logger = logger.Level(lvl)
 	logger = logger.With().
 		Caller().
@@ -39,7 +40,7 @@ func InitContextLogger(ctx context.Context, lvl zerolog.Level, opts ...LoggingOp
 
 func FromContext(ctx context.Context) zerolog.Logger {
 	logger := log.Ctx(ctx)
-	if logger == nil {
+	if logger.GetLevel() == zerolog.Disabled {
 		return DefaultLogger
 	}
 	return *logger

@@ -16,7 +16,7 @@ type Error struct {
 
 func New(camp, err error) *Error {
 	return &Error{
-		camp: err,
+		camp: camp,
 		err:  err,
 	}
 }

@@ -2,7 +2,6 @@ package ogen_server
 
 import (
 	"context"
-	"net/http"
 	"time"
 )
 
@@ -17,21 +16,11 @@ type OgenServerConfig struct {
 	ApplicationName string
 }
 
-func NewOgenServer(handler http.Handler, cfg OgenServerConfig) (*OgenServer, error) {
-	rest := http.Server{
-		Addr:    cfg.Address,
-		Handler: handler,
-	}
-
-	metrics, err := NewMetrics(cfg.MetricsAddress, cfg.ApplicationName)
-	if err != nil {
-		return nil, err
-	}
-
+func NewOgenServer(r *Rest, m *Metrics) *OgenServer {
 	return &OgenServer{
-		Rest:    NewRest(&rest),
-		Metrics: metrics,
-	}, nil
+		Rest:    r,
+		Metrics: m,
+	}
 }
 
 func (s *OgenServer) Start(ctx context.Context) error {
