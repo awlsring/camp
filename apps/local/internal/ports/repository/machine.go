@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrMachineNotFound = errors.New("user does not exist")
+	ErrMachineNotFound = errors.New("machine does not exist")
 	ErrInternalFailure = errors.New("internal error")
 )
 

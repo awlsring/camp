@@ -1,36 +1,32 @@
-package postgres
+package machine_repository
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 	"time"
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
+	"github.com/awlsring/camp/apps/local/internal/core/domain/tag"
 	"github.com/awlsring/camp/apps/local/internal/ports/repository"
+	"github.com/awlsring/camp/internal/pkg/database"
+	"github.com/awlsring/camp/internal/pkg/logger"
 
 	_ "github.com/lib/pq"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 )
 
-var _ repository.Machine = &PostgresRepo{}
+var _ repository.Machine = &MachineRepo{}
 
-type Database interface {
-	Close() error
-	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
-	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+type MachineRepo struct {
+	database database.Database
+	tagRepo  repository.Tag
 }
 
-type PostgresRepo struct {
-	database Database
-}
-
-func NewPqRepo(db *sqlx.DB) (repository.Machine, error) {
-	r := &PostgresRepo{
+func New(db database.Database, tagRepo repository.Tag) (repository.Machine, error) {
+	r := &MachineRepo{
 		database: db,
+		tagRepo:  tagRepo,
 	}
 	err := r.init()
 	if err != nil {
@@ -39,11 +35,11 @@ func NewPqRepo(db *sqlx.DB) (repository.Machine, error) {
 	return r, nil
 }
 
-func (r *PostgresRepo) init() error {
+func (r *MachineRepo) init() error {
 	return r.initTables()
 }
 
-func (r *PostgresRepo) initTables() error {
+func (r *MachineRepo) initTables() error {
 	createMachinesTable := `
 		CREATE TABLE IF NOT EXISTS machines (
 			identifier VARCHAR(64) PRIMARY KEY,
@@ -165,11 +161,11 @@ func (r *PostgresRepo) initTables() error {
 	return nil
 }
 
-func (r *PostgresRepo) Close() error {
+func (r *MachineRepo) Close() error {
 	return r.database.Close()
 }
 
-func (r *PostgresRepo) Get(ctx context.Context, id machine.Identifier) (*machine.Machine, error) {
+func (r *MachineRepo) Get(ctx context.Context, id machine.Identifier) (*machine.Machine, error) {
 	var mdb MachineSql
 	err := r.database.GetContext(ctx, &mdb, "SELECT * FROM machines WHERE identifier = $1", id)
 	if err != nil {
@@ -187,17 +183,27 @@ func (r *PostgresRepo) Get(ctx context.Context, id machine.Identifier) (*machine
 	if err != nil {
 		return nil, err
 	}
+	tags, err := r.tagRepo.ListForResource(ctx, id.String())
+	if err != nil {
+		return nil, err
+	}
+	mod.Tags = tags
 
 	return mod, nil
 }
 
-func (r *PostgresRepo) List(ctx context.Context, filters *repository.ListMachinesFilters) ([]*machine.Machine, error) {
-	log.Debug().Msg("Invoke PostgresRepo.GetMachines")
+func (r *MachineRepo) List(ctx context.Context, filters *repository.ListMachinesFilters) ([]*machine.Machine, error) {
+	log := logger.FromContext(ctx)
+	log.Debug().Msg("Invoke MachineRepo.GetMachines")
+
+	log.Debug().Msg("Listing machines from database")
 	var machinesModels []*MachineSql
 	err := r.database.SelectContext(ctx, &machinesModels, "SELECT * FROM machines")
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to list machines")
 		return nil, err
 	}
+
 	log.Debug().Msgf("Found %d machines", len(machinesModels))
 	models := []*machine.Machine{}
 	for _, m := range machinesModels {
@@ -206,10 +212,21 @@ func (r *PostgresRepo) List(ctx context.Context, filters *repository.ListMachine
 		if err != nil {
 			return nil, err
 		}
+
+		log.Debug().Msgf("Converting machine to domain: %+v", m.Identifier)
 		mod, err := m.ToModel()
 		if err != nil {
+			log.Error().Err(err).Msg("Failed to convert machine to domain")
 			return nil, err
 		}
+		tags, err := r.tagRepo.ListForResource(ctx, m.Identifier)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to list tags for machine")
+			return nil, err
+		}
+		mod.Tags = tags
+
+		log.Debug().Msgf("Appending machine to list: %+v", m.Identifier)
 		models = append(models, mod)
 	}
 
@@ -217,7 +234,7 @@ func (r *PostgresRepo) List(ctx context.Context, filters *repository.ListMachine
 	return models, nil
 }
 
-func (r *PostgresRepo) enrichMachineEntry(ctx context.Context, m *MachineSql) error {
+func (r *MachineRepo) enrichMachineEntry(ctx context.Context, m *MachineSql) error {
 	system, err := r.getMachineSystem(ctx, m.Identifier)
 	if err != nil {
 		return err
@@ -263,7 +280,7 @@ func (r *PostgresRepo) enrichMachineEntry(ctx context.Context, m *MachineSql) er
 	return nil
 }
 
-func (r *PostgresRepo) getMachineSystem(ctx context.Context, id string) (*SystemModelSql, error) {
+func (r *MachineRepo) getMachineSystem(ctx context.Context, id string) (*SystemModelSql, error) {
 	var m SystemModelSql
 	err := r.database.GetContext(ctx, &m, "SELECT * FROM system_models WHERE machine_id = $1", id)
 	if err != nil {
@@ -272,7 +289,7 @@ func (r *PostgresRepo) getMachineSystem(ctx context.Context, id string) (*System
 	return &m, nil
 }
 
-func (r *PostgresRepo) getMachineCpu(ctx context.Context, id string) (*CpuModelSql, error) {
+func (r *MachineRepo) getMachineCpu(ctx context.Context, id string) (*CpuModelSql, error) {
 	var m CpuModelSql
 	err := r.database.GetContext(ctx, &m, "SELECT * FROM cpu_models WHERE machine_id = $1", id)
 	if err != nil {
@@ -281,7 +298,7 @@ func (r *PostgresRepo) getMachineCpu(ctx context.Context, id string) (*CpuModelS
 	return &m, nil
 }
 
-func (r *PostgresRepo) getMachineMemory(ctx context.Context, id string) (*MemoryModelSql, error) {
+func (r *MachineRepo) getMachineMemory(ctx context.Context, id string) (*MemoryModelSql, error) {
 	var m MemoryModelSql
 	err := r.database.GetContext(ctx, &m, "SELECT * FROM memory_models WHERE machine_id = $1", id)
 	if err != nil {
@@ -290,7 +307,7 @@ func (r *PostgresRepo) getMachineMemory(ctx context.Context, id string) (*Memory
 	return &m, nil
 }
 
-func (r *PostgresRepo) getMachineDisks(ctx context.Context, id string) ([]*DiskModelSql, error) {
+func (r *MachineRepo) getMachineDisks(ctx context.Context, id string) ([]*DiskModelSql, error) {
 	var m []*DiskModelSql
 	err := r.database.SelectContext(ctx, &m, "SELECT * FROM disk_models WHERE machine_id = $1", id)
 	if err != nil {
@@ -299,7 +316,7 @@ func (r *PostgresRepo) getMachineDisks(ctx context.Context, id string) ([]*DiskM
 	return m, nil
 }
 
-func (r *PostgresRepo) getNicsAddresses(ctx context.Context, nicId int64) ([]*IpAddressModelSql, error) {
+func (r *MachineRepo) getNicsAddresses(ctx context.Context, nicId int64) ([]*IpAddressModelSql, error) {
 	var m []*IpAddressModelSql
 	err := r.database.SelectContext(ctx, &m, "SELECT * FROM address_models WHERE nic_id = $1", nicId)
 	if err != nil {
@@ -308,7 +325,7 @@ func (r *PostgresRepo) getNicsAddresses(ctx context.Context, nicId int64) ([]*Ip
 	return m, nil
 }
 
-func (r *PostgresRepo) getMachineNetworkInterfaces(ctx context.Context, id string) ([]*NetworkInterfaceModelSql, error) {
+func (r *MachineRepo) getMachineNetworkInterfaces(ctx context.Context, id string) ([]*NetworkInterfaceModelSql, error) {
 	var m []*NetworkInterfaceModelSql
 	err := r.database.SelectContext(ctx, &m, "SELECT * FROM network_interface_models WHERE machine_id = $1", id)
 	for _, ni := range m {
@@ -324,7 +341,7 @@ func (r *PostgresRepo) getMachineNetworkInterfaces(ctx context.Context, id strin
 	return m, nil
 }
 
-func (r *PostgresRepo) getMachineVolumes(ctx context.Context, id string) ([]*VolumeModelSql, error) {
+func (r *MachineRepo) getMachineVolumes(ctx context.Context, id string) ([]*VolumeModelSql, error) {
 	var m []*VolumeModelSql
 	err := r.database.SelectContext(ctx, &m, "SELECT * FROM volume_models WHERE machine_id = $1", id)
 	if err != nil {
@@ -333,7 +350,7 @@ func (r *PostgresRepo) getMachineVolumes(ctx context.Context, id string) ([]*Vol
 	return m, nil
 }
 
-func (r *PostgresRepo) Add(ctx context.Context, m *machine.Machine) error {
+func (r *MachineRepo) Add(ctx context.Context, m *machine.Machine) error {
 	err := r.createMachineEntry(ctx, m)
 	if err != nil {
 		return err
@@ -381,10 +398,17 @@ func (r *PostgresRepo) Add(ctx context.Context, m *machine.Machine) error {
 		}
 	}
 
+	for _, t := range m.Tags {
+		err = r.tagRepo.AddToResource(ctx, t, m.Identifier.String(), tag.ResourceTypeMachine)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, m *machine.Machine) error {
+func (r *MachineRepo) Update(ctx context.Context, m *machine.Machine) error {
 	mid, err := r.Get(ctx, m.Identifier)
 	if err != nil {
 		return err
@@ -435,7 +459,7 @@ func (r *PostgresRepo) Update(ctx context.Context, m *machine.Machine) error {
 	return nil
 }
 
-func (r *PostgresRepo) UpdateHeartbeat(ctx context.Context, id machine.Identifier) error {
+func (r *MachineRepo) UpdateHeartbeat(ctx context.Context, id machine.Identifier) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE machines SET last_heartbeat = NOW() WHERE identifier = $1", id)
 	if err != nil {
 		return err
@@ -443,7 +467,7 @@ func (r *PostgresRepo) UpdateHeartbeat(ctx context.Context, id machine.Identifie
 	return nil
 }
 
-func (r PostgresRepo) UpdateStatus(ctx context.Context, id machine.Identifier, status machine.MachineStatus) error {
+func (r MachineRepo) UpdateStatus(ctx context.Context, id machine.Identifier, status machine.MachineStatus) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE machines SET status = $1 WHERE identifier = $2", status, id)
 	if err != nil {
 		return err
@@ -451,7 +475,7 @@ func (r PostgresRepo) UpdateStatus(ctx context.Context, id machine.Identifier, s
 	return nil
 }
 
-func (r *PostgresRepo) Delete(ctx context.Context, id machine.Identifier) error {
+func (r *MachineRepo) Delete(ctx context.Context, id machine.Identifier) error {
 	_, err := r.database.ExecContext(ctx, "DELETE FROM machines WHERE id = $1", id)
 	if err != nil {
 		return err
@@ -459,7 +483,7 @@ func (r *PostgresRepo) Delete(ctx context.Context, id machine.Identifier) error 
 	return nil
 }
 
-func (r *PostgresRepo) createMachineEntry(ctx context.Context, m *machine.Machine) error {
+func (r *MachineRepo) createMachineEntry(ctx context.Context, m *machine.Machine) error {
 	now := time.Now()
 	_, err := r.database.ExecContext(ctx, "INSERT INTO machines (identifier, class, last_heartbeat, registered_at, updated_at, status) VALUES ($1, $2, $3, $4, $5, $6)", m.Identifier, m.Class, now, now, now, machine.MachineStatusRunning.String())
 	if err != nil {
@@ -468,7 +492,7 @@ func (r *PostgresRepo) createMachineEntry(ctx context.Context, m *machine.Machin
 	return nil
 }
 
-func (r *PostgresRepo) createSystemModel(ctx context.Context, mid machine.Identifier, m *machine.System) error {
+func (r *MachineRepo) createSystemModel(ctx context.Context, mid machine.Identifier, m *machine.System) error {
 	_, err := r.database.ExecContext(ctx, "INSERT INTO system_models (family, kernel_version, os, os_version, os_pretty, hostname, machine_id) VALUES ($1, $2, $3, $4, $5, $6, $7)", m.Os.Family, m.Os.Kernel, m.Os, m.Os.Version, m.Os.PrettyName, m.Hostname, mid)
 	if err != nil {
 		return err
@@ -476,7 +500,7 @@ func (r *PostgresRepo) createSystemModel(ctx context.Context, mid machine.Identi
 	return nil
 }
 
-func (r *PostgresRepo) createCpuModel(ctx context.Context, mid machine.Identifier, m *machine.Cpu) error {
+func (r *MachineRepo) createCpuModel(ctx context.Context, mid machine.Identifier, m *machine.Cpu) error {
 	_, err := r.database.ExecContext(ctx, "INSERT INTO cpu_models (cores, architecture, model, vendor, machine_id) VALUES ($1, $2, $3, $4, $5)", m.Cores, m.Architecture, m.Model, m.Vendor, mid)
 	if err != nil {
 		return err
@@ -484,7 +508,7 @@ func (r *PostgresRepo) createCpuModel(ctx context.Context, mid machine.Identifie
 	return nil
 }
 
-func (r *PostgresRepo) createMemoryModel(ctx context.Context, mid machine.Identifier, m *machine.Memory) error {
+func (r *MachineRepo) createMemoryModel(ctx context.Context, mid machine.Identifier, m *machine.Memory) error {
 	_, err := r.database.ExecContext(ctx, "INSERT INTO memory_models (total, machine_id) VALUES ($1, $2)", m.Total, mid)
 	if err != nil {
 		return err
@@ -492,7 +516,7 @@ func (r *PostgresRepo) createMemoryModel(ctx context.Context, mid machine.Identi
 	return nil
 }
 
-func (r *PostgresRepo) createDiskModel(ctx context.Context, mid machine.Identifier, m *machine.Disk) error {
+func (r *MachineRepo) createDiskModel(ctx context.Context, mid machine.Identifier, m *machine.Disk) error {
 	_, err := r.database.ExecContext(ctx, "INSERT INTO disk_models (device, model, vendor, interface, type, serial, sector_size, size, size_raw, machine_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", m.Device, m.Model, m.Vendor, m.Interface, m.Type, m.Serial, m.SectorSize, m.Size, m.SizeRaw, mid)
 	if err != nil {
 		return err
@@ -500,7 +524,7 @@ func (r *PostgresRepo) createDiskModel(ctx context.Context, mid machine.Identifi
 	return nil
 }
 
-func (r *PostgresRepo) createNetworkInterfaceModel(ctx context.Context, mid machine.Identifier, m *machine.NetworkInterface) error {
+func (r *MachineRepo) createNetworkInterfaceModel(ctx context.Context, mid machine.Identifier, m *machine.NetworkInterface) error {
 	var id int64
 	err := r.database.GetContext(ctx, &id, "INSERT INTO network_interface_models (name, virtual, mac_address, vendor, mtu, speed, duplex, machine_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id", m.Name, m.Virtual, m.MacAddress, m.Vendor, m.Mtu, m.Speed, m.Duplex, mid)
 	if err != nil {
@@ -517,7 +541,7 @@ func (r *PostgresRepo) createNetworkInterfaceModel(ctx context.Context, mid mach
 	return nil
 }
 
-func (r *PostgresRepo) createAddressModel(ctx context.Context, nid int64, m *machine.IpAddress) error {
+func (r *MachineRepo) createAddressModel(ctx context.Context, nid int64, m *machine.IpAddress) error {
 	_, err := r.database.ExecContext(ctx, "INSERT INTO address_models (address, version, nic_id) VALUES ($1, $2, $3)", m.Address, m.Version, nid)
 	if err != nil {
 		return err
@@ -525,7 +549,7 @@ func (r *PostgresRepo) createAddressModel(ctx context.Context, nid int64, m *mac
 	return nil
 }
 
-func (r *PostgresRepo) createVolumeModel(ctx context.Context, mid machine.Identifier, m *machine.Volume) error {
+func (r *MachineRepo) createVolumeModel(ctx context.Context, mid machine.Identifier, m *machine.Volume) error {
 	_, err := r.database.ExecContext(ctx, "INSERT INTO volume_models (name, mount_point, total, file_system, machine_id) VALUES ($1, $2, $3, $4, $5)", m.Name, m.MountPoint, m.Total, m.FileSystem, mid)
 	if err != nil {
 		return err
@@ -533,7 +557,7 @@ func (r *PostgresRepo) createVolumeModel(ctx context.Context, mid machine.Identi
 	return nil
 }
 
-func (r *PostgresRepo) updateSystemModel(ctx context.Context, mid machine.Identifier, m *machine.System) error {
+func (r *MachineRepo) updateSystemModel(ctx context.Context, mid machine.Identifier, m *machine.System) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE system_models SET family = $1, kernel_version = $2, os = $3, os_version = $4, os_pretty = $5, hostname = $6 WHERE machine_id = $7", m.Os.Family, m.Os.Kernel, m.Os, m.Os.Version, m.Os.PrettyName, m.Hostname, mid)
 	if err != nil {
 		return err
@@ -541,7 +565,7 @@ func (r *PostgresRepo) updateSystemModel(ctx context.Context, mid machine.Identi
 	return nil
 }
 
-func (r *PostgresRepo) updateCpuModel(ctx context.Context, mid machine.Identifier, m *machine.Cpu) error {
+func (r *MachineRepo) updateCpuModel(ctx context.Context, mid machine.Identifier, m *machine.Cpu) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE cpu_models SET cores = $1, architecture = $2, model = $3, vendor = $4 WHERE machine_id = $5", m.Cores, m.Architecture, m.Model, m.Vendor, mid)
 	if err != nil {
 		return err
@@ -549,7 +573,7 @@ func (r *PostgresRepo) updateCpuModel(ctx context.Context, mid machine.Identifie
 	return nil
 }
 
-func (r *PostgresRepo) updateMemoryModel(ctx context.Context, mid machine.Identifier, m *machine.Memory) error {
+func (r *MachineRepo) updateMemoryModel(ctx context.Context, mid machine.Identifier, m *machine.Memory) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE memory_models SET total = $1 WHERE machine_id = $2", m.Total, mid)
 	if err != nil {
 		return err
@@ -557,7 +581,7 @@ func (r *PostgresRepo) updateMemoryModel(ctx context.Context, mid machine.Identi
 	return nil
 }
 
-func (r *PostgresRepo) updateDiskModel(ctx context.Context, mid machine.Identifier, m *machine.Disk) error {
+func (r *MachineRepo) updateDiskModel(ctx context.Context, mid machine.Identifier, m *machine.Disk) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE disk_models SET device = $1, model = $2, vendor = $3, interface = $4, type = $5, serial = $6, sector_size = $7, size = $8, size_raw = $9 WHERE machine_id = $10", m.Device, m.Model, m.Vendor, m.Interface, m.Type, m.Serial, m.SectorSize, m.Size, m.SizeRaw, mid)
 	if err != nil {
 		return err
@@ -565,7 +589,7 @@ func (r *PostgresRepo) updateDiskModel(ctx context.Context, mid machine.Identifi
 	return nil
 }
 
-func (r *PostgresRepo) updateNetworkInterfaceModel(ctx context.Context, mid machine.Identifier, m *machine.NetworkInterface) error {
+func (r *MachineRepo) updateNetworkInterfaceModel(ctx context.Context, mid machine.Identifier, m *machine.NetworkInterface) error {
 	var id int64
 	err := r.database.GetContext(ctx, &id, "UPDATE network_interface_models SET name = $1, virtual = $2, mac_address = $3, vendor = $4, mtu = $5 WHERE machine_id = $6 RETURNING id", m.Name, m.Virtual, m.MacAddress, m.Vendor, m.Mtu, mid)
 	if err != nil {
@@ -577,7 +601,7 @@ func (r *PostgresRepo) updateNetworkInterfaceModel(ctx context.Context, mid mach
 	return nil
 }
 
-func (r *PostgresRepo) updateAddressModel(ctx context.Context, nid int64, m *machine.IpAddress) error {
+func (r *MachineRepo) updateAddressModel(ctx context.Context, nid int64, m *machine.IpAddress) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE address_models SET address = $1, version = $2 WHERE nic_id = $3", m.Address, m.Version, nid)
 	if err != nil {
 		return err
@@ -585,7 +609,7 @@ func (r *PostgresRepo) updateAddressModel(ctx context.Context, nid int64, m *mac
 	return nil
 }
 
-func (r *PostgresRepo) updateVolumeModel(ctx context.Context, mid machine.Identifier, m *machine.Volume) error {
+func (r *MachineRepo) updateVolumeModel(ctx context.Context, mid machine.Identifier, m *machine.Volume) error {
 	_, err := r.database.ExecContext(ctx, "UPDATE volume_models SET name = $1, mount_point = $2, total = $3, file_system = $4 WHERE machine_id = $5", m.Name, m.MountPoint, m.Total, m.FileSystem, mid)
 	if err != nil {
 		return err

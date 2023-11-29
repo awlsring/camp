@@ -2,11 +2,14 @@ package machine
 
 import (
 	"time"
+
+	"github.com/awlsring/camp/apps/local/internal/core/domain/tag"
 )
 
 type Machine struct {
 	Identifier        Identifier
 	Class             MachineClass
+	Tags              []*tag.Tag
 	LastHeartbeat     time.Time
 	RegisteredAt      time.Time
 	UpdatedAt         time.Time

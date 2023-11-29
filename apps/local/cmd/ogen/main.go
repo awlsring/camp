@@ -10,8 +10,10 @@ import (
 
 	"github.com/awlsring/camp/apps/local/internal/adapters/primary/rest/ogen"
 	"github.com/awlsring/camp/apps/local/internal/adapters/primary/rest/ogen/handler"
-	"github.com/awlsring/camp/apps/local/internal/adapters/secondary/repository/machine/postgres"
+	machine_repository "github.com/awlsring/camp/apps/local/internal/adapters/secondary/repository/postgres/machine"
+	tag_repository "github.com/awlsring/camp/apps/local/internal/adapters/secondary/repository/postgres/tag"
 	"github.com/awlsring/camp/apps/local/internal/core/service/machine"
+	"github.com/awlsring/camp/internal/pkg/database"
 	"github.com/awlsring/camp/internal/pkg/logger"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -30,7 +32,7 @@ func main() {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 
-	dbConfig := postgres.RepoConfig{
+	dbConfig := database.PostgresConfig{
 		Driver:   "postgres",
 		Host:     dbHost,
 		Port:     5432,
@@ -41,14 +43,19 @@ func main() {
 	}
 
 	log.Info().Msg("Connecting to Postgres")
-	pgDb, err := sqlx.Connect("postgres", postgres.CreatePostgresConnectionString(dbConfig))
+	pgDb, err := sqlx.Connect("postgres", database.CreatePostgresConnectionString(dbConfig))
 	if err != nil {
 		panic(errors.Wrap(err, "postgres"))
 	}
 	defer pgDb.Close()
 
+	tagRepo, err := tag_repository.New(pgDb)
+	if err != nil {
+		panic(errors.Wrap(err, "tag repo"))
+	}
+
 	log.Debug().Msg("Initializing Machine Repo")
-	machineRepo, err := postgres.NewPqRepo(pgDb)
+	machineRepo, err := machine_repository.New(pgDb, tagRepo)
 	if err != nil {
 		panic(errors.Wrap(err, "machine repo"))
 	}

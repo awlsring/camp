@@ -222,10 +222,7 @@ func addressSummaryToDomain(sum camplocal.IpAddressSummary) (*machine.IpAddress,
 	if err != nil {
 		return nil, err
 	}
-	version, err := machine.IpAddressTypeFromString(string(sum.Version))
-	if err != nil {
-		return nil, err
-	}
+	version := machine.IpAddressTypeFromString(string(sum.Version))
 
 	return &machine.IpAddress{
 		Version: version,

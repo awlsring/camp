@@ -1,4 +1,4 @@
-package postgres
+package machine_repository
 
 import (
 	"time"
@@ -97,12 +97,12 @@ func (m *MachineSql) ToModel() (*machine.Machine, error) {
 }
 
 type SystemModelSql struct {
-	Family        *string `db:"family"`
-	KernelVersion *string `db:"kernel_version"`
-	Os            *string `db:"os"`
-	OsVersion     *string `db:"os_version"`
-	OsPretty      *string `db:"os_pretty"`
-	Hostname      *string `db:"hostname"`
+	Family        *string `db:"family,omitempty"`
+	KernelVersion *string `db:"kernel_version,omitempty"`
+	Os            *string `db:"os,omitempty"`
+	OsVersion     *string `db:"os_version,omitempty"`
+	OsPretty      *string `db:"os_pretty,omitempty"`
+	Hostname      *string `db:"hostname,omitempty"`
 	Id            int64   `db:"id"`
 	MachineId     string  `db:"machine_id"`
 }
@@ -123,8 +123,8 @@ func (s *SystemModelSql) ToModel() *machine.System {
 type CpuModelSql struct {
 	Cores        int     `db:"cores"`
 	Architecture string  `db:"architecture"`
-	Model        *string `db:"model"`
-	Vendor       *string `db:"vendor"`
+	Model        *string `db:"model,omitempty"`
+	Vendor       *string `db:"vendor,omitempty"`
 	Id           int64   `db:"id"`
 	MachineId    string  `db:"machine_id"`
 }
@@ -152,14 +152,14 @@ func (m *MemoryModelSql) ToModel() *machine.Memory {
 
 type DiskModelSql struct {
 	Device     string  `db:"device"`
-	Model      *string `db:"model"`
-	Vendor     *string `db:"vendor"`
+	Model      *string `db:"model,omitempty"`
+	Vendor     *string `db:"vendor,omitempty"`
 	Interface  string  `db:"interface"`
 	Type       string  `db:"type"`
-	Serial     *string `db:"serial"`
+	Serial     *string `db:"serial,omitempty"`
 	SectorSize int     `db:"sector_size"`
 	Size       int64   `db:"size"`
-	SizeRaw    *int64  `db:"size_raw"`
+	SizeRaw    *int64  `db:"size_raw,omitempty"`
 	Id         int64   `db:"id"`
 	MachineId  string  `db:"machine_id"`
 }
@@ -186,11 +186,11 @@ func (d *DiskModelSql) ToModel() (*machine.Disk, error) {
 type NetworkInterfaceModelSql struct {
 	Name       string  `db:"name"`
 	Virtual    bool    `db:"virtual"`
-	MacAddress *string `db:"mac_address"`
-	Vendor     *string `db:"vendor"`
-	Mtu        *int    `db:"mtu"`
-	Speed      *int    `db:"speed"`
-	Duplex     *string `db:"duplex"`
+	MacAddress *string `db:"mac_address,omitempty"`
+	Vendor     *string `db:"vendor,omitempty"`
+	Mtu        *int    `db:"mtu,omitempty"`
+	Speed      *int    `db:"speed,omitempty"`
+	Duplex     *string `db:"duplex,omitempty"`
 	Id         int64   `db:"id"`
 	MachineId  string  `db:"machine_id"`
 	Addresses  []*IpAddressModelSql
@@ -213,6 +213,8 @@ func (n *NetworkInterfaceModelSql) ToModel() (*machine.NetworkInterface, error) 
 
 	var mac *machine.MacAddress
 	if n.MacAddress == nil {
+		mac = nil
+	} else if *n.MacAddress == "" {
 		mac = nil
 	} else {
 		m, err := machine.MacAddressFromString(*n.MacAddress)
@@ -238,7 +240,7 @@ type VolumeModelSql struct {
 	Name       string  `db:"name"`
 	MountPoint string  `db:"mount_point"`
 	Total      int64   `db:"total"`
-	FileSystem *string `db:"file_system"`
+	FileSystem *string `db:"file_system,omitempty"`
 	Id         int64   `db:"id"`
 	MachineId  string  `db:"machine_id"`
 }
@@ -270,13 +272,12 @@ type IpAddressModelSql struct {
 }
 
 func (a *IpAddressModelSql) ToModel() (*machine.IpAddress, error) {
+	ver := machine.IpAddressTypeFromString(a.Version)
 
-	ver, err := machine.IpAddressTypeFromString(a.Version)
+	add, err := machine.AddressFromString(a.Address)
 	if err != nil {
 		return nil, err
 	}
-
-	add, err := machine.AddressFromString(a.Address)
 
 	return &machine.IpAddress{
 		Version: ver,

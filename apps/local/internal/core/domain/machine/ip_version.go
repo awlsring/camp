@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrInvalidIpAddressClass = errors.New("invalid id address class")
+	ErrInvalidIpAddressClass = errors.New("invalid ip address class")
 )
 
 type IpAddressVersion int64
@@ -17,14 +17,14 @@ const (
 	IpAddressTypeUnknown
 )
 
-func IpAddressTypeFromString(v string) (IpAddressVersion, error) {
+func IpAddressTypeFromString(v string) IpAddressVersion {
 	switch strings.ToLower(v) {
 	case "ipv4", "v4":
-		return IpAddressV4, nil
+		return IpAddressV4
 	case "ipv6", "v6":
-		return IpAddressV6, nil
+		return IpAddressV6
 	default:
-		return IpAddressTypeUnknown, ErrInvalidIpAddressClass
+		return IpAddressTypeUnknown
 	}
 }
 

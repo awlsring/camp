@@ -35,7 +35,7 @@ func (h *Handler) ListMachines(ctx context.Context) (camplocal.ListMachinesRes, 
 
 	var summaries []camplocal.MachineSummary
 	for _, machine := range m {
-		log.Debug().Msgf("Converting machine: %+v", machine)
+		log.Debug().Msgf("Converting machine: %s", machine.Identifier.String())
 		summaries = append(summaries, modelToSummary(machine))
 	}
 
