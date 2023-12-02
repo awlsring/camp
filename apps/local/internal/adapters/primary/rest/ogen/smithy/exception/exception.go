@@ -46,6 +46,14 @@ func NewInvalidInputError(msg string) *Exception {
 	}
 }
 
+func NewValidationError(msg string) *Exception {
+	return &Exception{
+		HttpCode:      400,
+		ExceptionType: ExceptionTypeValidationException,
+		Message:       msg,
+	}
+}
+
 func NewResourceNotFoundError(msg string) *Exception {
 	return &Exception{
 		HttpCode:      404,

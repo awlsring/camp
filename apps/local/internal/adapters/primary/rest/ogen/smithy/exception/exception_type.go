@@ -10,6 +10,7 @@ const (
 	ExceptionTypeInternalFailureException
 	ExceptionTypeSerializationException
 	ExceptionTypeUnknownOperationException
+	ExceptionTypeValidationException
 )
 
 func (e ExceptionType) String() string {
@@ -26,6 +27,8 @@ func (e ExceptionType) String() string {
 		return "SerializationException"
 	case ExceptionTypeUnknownOperationException:
 		return "UnknownOperationException"
+	case ExceptionTypeValidationException:
+		return "ValidationException"
 	default:
 		return "InternalFailureException"
 	}

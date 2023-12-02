@@ -38,7 +38,8 @@ func NewCampLocalServer(handler camplocal.Handler, cfg Config) (*CampLocalServer
 		auth.NewSecurityHandler(cfg.ApiKeys, cfg.AgentKeys),
 		camplocal.WithTracerProvider(m.TracerProvider()),
 		camplocal.WithMeterProvider(m.MeterProvider()),
-		camplocal.WithErrorHandler(exception.ResponseHandler),
+		camplocal.WithNotFound(exception.UnknownOperationHandler),
+		camplocal.WithErrorHandler(exception.ResponseHandlerWithLogger(zerolog.DebugLevel)),
 		camplocal.WithMiddleware(middleware.LoggingMiddleware(zerolog.DebugLevel)),
 	)
 	if err != nil {
