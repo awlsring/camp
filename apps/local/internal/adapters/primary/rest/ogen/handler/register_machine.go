@@ -20,6 +20,18 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 		return nil, err
 	}
 
+	endpoint, err := machine.MachineEndpointFromString(req.CallbackEndpoint)
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to parse endpoint %s", req.CallbackEndpoint)
+		return nil, err
+	}
+
+	key, err := machine.AgentKeyFromString(req.CallbackKey)
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to parse key %s", req.CallbackKey)
+		return nil, err
+	}
+
 	class, err := machine.MachineClassFromString(string(req.Summary.GetClass().Value))
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class.Value)
@@ -54,7 +66,7 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 		return nil, err
 	}
 
-	err = h.mSvc.RegisterMachine(ctx, id, class, sys, cpu, mem, disk, nic, vol, ips)
+	err = h.mSvc.RegisterMachine(ctx, id, endpoint, key, class, sys, cpu, mem, disk, nic, vol, ips)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to register machine")
 		return nil, err

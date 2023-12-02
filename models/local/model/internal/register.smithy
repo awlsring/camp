@@ -16,8 +16,17 @@ operation Register {
 
 @input
 structure RegisterInput {
+    @documentation("The summary of the machine to register.")
     @required
     summary: ReportedMachineSummary
+
+    @documentation("The endpoint to use for callbacks.")
+    @required
+    callbackEndpoint: String
+
+    @documentation("The key to use for callbacks.")
+    @required
+    callbackKey: String
 }
 
 @output
