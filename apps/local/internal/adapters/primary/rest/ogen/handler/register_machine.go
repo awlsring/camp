@@ -2,27 +2,11 @@ package handler
 
 import (
 	"context"
-	"errors"
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
-	camperror "github.com/awlsring/camp/internal/pkg/errors"
 	"github.com/awlsring/camp/internal/pkg/logger"
 	camplocal "github.com/awlsring/camp/packages/camp_local"
 )
-
-func (h *Handler) registerMachineErrorHandler(err error) (camplocal.RegisterRes, error) {
-	var campErr *camperror.Error
-	if errors.As(err, &campErr) {
-		e := campErr.CampError()
-		switch e {
-		case camperror.ErrValidation:
-			return &camplocal.ValidationExceptionResponseContent{
-				Message: err.Error(),
-			}, nil
-		}
-	}
-	return nil, err
-}
 
 func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestContent) (camplocal.RegisterRes, error) {
 	log := logger.FromContext(ctx)
@@ -33,13 +17,13 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 	id, err := machine.IdentifierFromString(req.Summary.InternalIdentifier)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.Summary.InternalIdentifier)
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 
 	class, err := machine.MachineClassFromString(string(req.Summary.GetClass().Value))
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class.Value)
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 
 	sys := systemSummaryToDomain(req.Summary.System)
@@ -49,31 +33,31 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse disk summaries")
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 
 	nic, err := networkInterfaceSummariesToDomain(req.Summary.NetworkInterfaces)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse network interface summaries")
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 
 	vol, err := volumeSummariesToDomain(req.Summary.Volumes)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse volume summaries")
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 
 	ips, err := addressSummariesToDomain(req.Summary.Addresses)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse ip address summaries")
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 
 	err = h.mSvc.RegisterMachine(ctx, id, class, sys, cpu, mem, disk, nic, vol, ips)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to register machine")
-		return h.registerMachineErrorHandler(err)
+		return nil, err
 	}
 	return &camplocal.RegisterResponseContent{
 		Success: true,
