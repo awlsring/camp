@@ -7,6 +7,7 @@ var (
 	ErrResourceNotFound = fmt.Errorf("resource not found")
 	ErrUnathorized      = fmt.Errorf("unauthorized")
 	ErrValidation       = fmt.Errorf("validation error")
+	ErrDuplicate        = fmt.Errorf("duplicate resource")
 )
 
 type Error struct {

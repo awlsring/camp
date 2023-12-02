@@ -25,7 +25,7 @@ func (h *StaticKeySecurityHandler) HandleSmithyAPIHttpApiKeyAuth(ctx context.Con
 	key := t.GetAPIKey()
 
 	switch operationName {
-	case "DescribeMachine", "ListMachines", "AddTagsToMachine", "Health":
+	case "DescribeMachine", "ListMachines", "AddTagsToMachine", "RemoveTagFromMachine", "Health":
 		for _, k := range h.apiKeys {
 			if key == k {
 				valid = true

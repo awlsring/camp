@@ -439,6 +439,20 @@ func (r *MachineRepo) AddTags(ctx context.Context, id machine.Identifier, tags [
 	return nil
 }
 
+func (r *MachineRepo) RemoveTag(ctx context.Context, id machine.Identifier, tag tag.TagKey) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msgf("Removing tag %s from machine %s", tag, id.String())
+
+	err := r.tagRepo.DeleteTagFromResource(ctx, tag, id.String())
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to remove tag %s from machine %s", tag, id.String())
+		return err
+	}
+
+	log.Debug().Msg("Successfully removed tag from machine")
+	return nil
+}
+
 func (r *MachineRepo) Update(ctx context.Context, m *machine.Machine) error {
 	mid, err := r.Get(ctx, m.Identifier)
 	if err != nil {

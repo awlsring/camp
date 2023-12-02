@@ -6,24 +6,31 @@ import (
 	camplocal "github.com/awlsring/camp/packages/camp_local"
 )
 
+func tagToDomain(t camplocal.Tag) (*tag.Tag, error) {
+	key, err := tag.TagKeyFromString(t.Key)
+	if err != nil {
+		return nil, errors.New(errors.ErrValidation, err)
+	}
+
+	value, err := tag.TagValueFromString(t.Value)
+	if err != nil {
+		return nil, errors.New(errors.ErrValidation, err)
+	}
+
+	return &tag.Tag{
+		Key:   key,
+		Value: value,
+	}, nil
+}
+
 func tagsToDomain(tagList []camplocal.Tag) ([]*tag.Tag, error) {
 	tags := make([]*tag.Tag, len(tagList))
 	for i, t := range tagList {
-
-		key, err := tag.TagKeyFromString(t.Key)
+		tag, err := tagToDomain(t)
 		if err != nil {
-			return nil, errors.New(errors.ErrValidation, err)
+			return nil, err
 		}
-
-		value, err := tag.TagValueFromString(t.Value)
-		if err != nil {
-			return nil, errors.New(errors.ErrValidation, err)
-		}
-
-		tags[i] = &tag.Tag{
-			Key:   key,
-			Value: value,
-		}
+		tags[i] = tag
 	}
 	return tags, nil
 }

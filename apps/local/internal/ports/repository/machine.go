@@ -20,6 +20,7 @@ type Machine interface {
 	List(ctx context.Context, filters *ListMachinesFilters) ([]*machine.Machine, error)
 	Add(ctx context.Context, m *machine.Machine) error
 	AddTags(ctx context.Context, id machine.Identifier, tags []*tag.Tag) error
+	RemoveTag(ctx context.Context, id machine.Identifier, tag tag.TagKey) error
 	Delete(ctx context.Context, id machine.Identifier) error
 	Update(ctx context.Context, m *machine.Machine) error
 	UpdateHeartbeat(ctx context.Context, id machine.Identifier) error

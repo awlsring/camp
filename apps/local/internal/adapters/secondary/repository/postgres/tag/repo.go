@@ -2,12 +2,14 @@ package tag_repository
 
 import (
 	"context"
+	"strings"
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/tag"
 	"github.com/awlsring/camp/apps/local/internal/ports/repository"
 	"github.com/awlsring/camp/internal/pkg/database"
 	"github.com/awlsring/camp/internal/pkg/logger"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -39,7 +41,8 @@ func (r *TagRepo) initTable() error {
 			resource_identifier VARCHAR(64),
 			tag_key VARCHAR(50) NOT NULL,
 			tag_value VARCHAR(128) NOT NULL,
-			resource_type VARCHAR(50) NOT NULL
+			resource_type VARCHAR(50) NOT NULL,
+			CONSTRAINT unique_resource_tag_key UNIQUE (resource_identifier, tag_key)
 		);
 	`
 
@@ -100,6 +103,10 @@ func (r *TagRepo) AddToResource(ctx context.Context, t *tag.Tag, id string, type
 	log.Debug().Msg("Inserting tag into database")
 	_, err := r.database.ExecContext(ctx, query, id, t.Key, t.Value, typee.String())
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			log.Warn().Err(err).Msg("Duplicate tag for resource")
+			return repository.ErrDuplicateResourceTag
+		}
 		log.Error().Err(err).Msg("Error inserting tag into database")
 		return err
 	}
@@ -108,7 +115,7 @@ func (r *TagRepo) AddToResource(ctx context.Context, t *tag.Tag, id string, type
 	return nil
 }
 
-func (r *TagRepo) DeleteTagFromResource(ctx context.Context, key, rid string) error {
+func (r *TagRepo) DeleteTagFromResource(ctx context.Context, key tag.TagKey, rid string) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("Deleting tag %s from resource %s", key, rid)
 
@@ -119,7 +126,7 @@ func (r *TagRepo) DeleteTagFromResource(ctx context.Context, key, rid string) er
 	_, err := r.database.ExecContext(ctx, query, rid, key)
 	if err != nil {
 		log.Error().Err(err).Msg("Error deleting tag from database")
-		return err
+		return errors.Wrap(repository.ErrInternalFailure, err.Error())
 	}
 
 	log.Debug().Msg("Successfully deleted tag from resource")

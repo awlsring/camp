@@ -17,7 +17,7 @@ resource Machine {
     identifiers: {identifier: InternalMachineId}
     read: DescribeMachine
     list: ListMachines
-    operations: [AddTagsToMachine]
+    operations: [AddTagsToMachine, RemoveTagFromMachine]
 }
 
 string InternalMachineId

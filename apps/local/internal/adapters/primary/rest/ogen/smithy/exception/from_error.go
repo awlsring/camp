@@ -30,13 +30,15 @@ func FromError(err error) *Exception {
 		e := campErr.CampError()
 		switch e {
 		case camperror.ErrInternalFailure:
-			return NewInternalServerException(e.Error())
+			return NewInternalServerException(err.Error())
 		case camperror.ErrResourceNotFound:
-			return NewResourceNotFoundError(e.Error())
+			return NewResourceNotFoundError(err.Error())
 		case camperror.ErrUnathorized:
-			return NewUnauthorizedError(e.Error())
+			return NewUnauthorizedError(err.Error())
 		case camperror.ErrValidation:
-			return NewInvalidInputError(e.Error())
+			return NewInvalidInputError(err.Error())
+		case camperror.ErrDuplicate:
+			return NewInvalidInputError(err.Error())
 		}
 	}
 
