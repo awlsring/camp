@@ -17,7 +17,7 @@ resource Machine {
     identifiers: {identifier: InternalMachineId}
     read: DescribeMachine
     list: ListMachines
-    operations: [AddTagsToMachine, RemoveTagFromMachine]
+    operations: [PowerOnMachine, PowerOffMachine, RebootMachine, AddTagsToMachine, RemoveTagFromMachine]
 }
 
 string InternalMachineId
@@ -37,6 +37,9 @@ structure MachineSummary {
 
     @documentation("Tags attached to the machine")
     tags: Tags
+
+    @documentation("The power state capabilities of a machine.")
+    powerCapabilities: MachinePowerCapabilities
 
     @documentation("Information about the machine system")
     @required

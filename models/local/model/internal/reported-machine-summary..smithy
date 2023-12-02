@@ -20,6 +20,9 @@ structure ReportedMachineSummary {
     @documentation("The machine's class")
     class: MachineClass
 
+    @documentation("The power state capabilities a machine provides.")
+    powerCapabilities: MachinePowerCapabilities
+
     @documentation("Information about the machine system")
     @required
     system: MachineSystemSummary
