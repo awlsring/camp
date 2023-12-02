@@ -12,6 +12,7 @@ import (
 	"github.com/awlsring/camp/apps/local/internal/adapters/primary/rest/ogen/handler"
 	machine_repository "github.com/awlsring/camp/apps/local/internal/adapters/secondary/repository/postgres/machine"
 	tag_repository "github.com/awlsring/camp/apps/local/internal/adapters/secondary/repository/postgres/tag"
+	"github.com/awlsring/camp/apps/local/internal/config"
 	"github.com/awlsring/camp/apps/local/internal/core/service/machine"
 	"github.com/awlsring/camp/internal/pkg/database"
 	"github.com/awlsring/camp/internal/pkg/logger"
@@ -23,27 +24,25 @@ import (
 //go:embed swagger/swagger.json
 var doc []byte
 
+const ServiceName = "CampLocal"
+
 func main() {
 	ctx := logger.InitContextLogger(context.Background(), zerolog.DebugLevel)
 	log := logger.FromContext(ctx)
 	log.Info().Msg("Initializing")
 
-	dbHost := os.Getenv("DB_HOST")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-
-	dbConfig := database.PostgresConfig{
-		Driver:   "postgres",
-		Host:     dbHost,
-		Port:     5432,
-		Username: dbUser,
-		Password: dbPassword,
-		Database: "camplocal",
-		UseSsl:   false,
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "config.toml"
+		log.Warn().Msgf("CONFIG_PATH not set, using default config path as %s", configPath)
+	}
+	cfg, err := config.LoadConfig(ctx, configPath)
+	if err != nil {
+		panic(errors.Wrap(err, "config"))
 	}
 
 	log.Info().Msg("Connecting to Postgres")
-	pgDb, err := sqlx.Connect("postgres", database.CreatePostgresConnectionString(dbConfig))
+	pgDb, err := sqlx.Connect("postgres", database.CreatePostgresConnectionString(*cfg.Database.Postgres))
 	if err != nil {
 		panic(errors.Wrap(err, "postgres"))
 	}
@@ -67,11 +66,11 @@ func main() {
 
 	log.Debug().Msg("Initializing Server")
 	srv, err := ogen.NewCampLocalServer(hdl, ogen.Config{
-		ServiceName:    "CampLocal",
-		MetricsAddress: "127.0.0.1:9032",
-		ApiAddress:     "127.0.0.1:8032",
-		ApiKeys:        []string{"a"},
-		AgentKeys:      []string{"a"},
+		ServiceName:    ServiceName,
+		MetricsAddress: cfg.Metrics.Address,
+		ApiAddress:     cfg.Server.Address,
+		ApiKeys:        cfg.Server.ApiKeys,
+		AgentKeys:      cfg.Server.AgentKeys,
 	})
 	if err != nil {
 		panic(errors.Wrap(err, "server init"))

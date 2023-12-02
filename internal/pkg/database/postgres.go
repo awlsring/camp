@@ -8,13 +8,12 @@ import (
 )
 
 type PostgresConfig struct {
-	Driver   string
-	Host     string
-	Port     int
-	Username string
-	Password string
-	Database string
-	UseSsl   bool
+	Host     string `json:"host" yaml:"host" toml:"host"`
+	Port     int    `json:"port" yaml:"port" toml:"port"`
+	Username string `json:"username" yaml:"username" toml:"username"`
+	Password string `json:"password" yaml:"password" toml:"password"`
+	Database string `json:"database" yaml:"database" toml:"database"`
+	UseSsl   bool   `json:"use_ssl" yaml:"use_ssl" toml:"use_ssl"`
 }
 
 func CreatePostgresConnectionString(config PostgresConfig) string {

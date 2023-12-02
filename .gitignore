@@ -13,3 +13,6 @@ models/**/database/ent
 packages/camp_*
 apps/**/build
 system_snapshot.json
+config.toml
+config.yaml
+config.json
