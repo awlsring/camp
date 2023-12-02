@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use log::{debug, error, warn};
 use serde::Deserialize;
 use std::{env, fs};
 use toml;
@@ -121,7 +121,8 @@ pub fn load_config() -> Config {
             debug!("Loaded config from file");
             parse_config(config)
         }
-        Err(_) => {
+        Err(e) => {
+            error!("Failed to load config from file: {}", e);
             warn!("Failed to load config from file, using default config");
             Config::default()
         }
@@ -135,9 +136,9 @@ fn parse_config(config: String) -> Config {
             debug!("Parsed config");
             config
         }
-        Err(_) => {
-            warn!("Failed to parse config, using default config");
-            Config::default()
+        Err(e) => {
+            error!("Failed to parse config: {}", e);
+            panic!("Failed to parse config: {}", e);
         }
     }
 }

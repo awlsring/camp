@@ -84,16 +84,7 @@ impl ReportingClient {
 
         match resp {
             Ok(_) => Result::Ok(true),
-            Err(e) => {
-                let status_code = get_status_code_from_err(e);
-
-                if status_code == 404 {
-                    Result::Ok(false)
-                } else {
-                    error!("Unexpected error describing self");
-                    Result::Err("Unexpected error describing self".to_string())
-                }
-            }
+            Err(e) => Result::Err(format!("Failed to check registration: {}", e)),
         }
     }
 
