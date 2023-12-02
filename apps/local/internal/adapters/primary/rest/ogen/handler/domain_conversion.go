@@ -13,6 +13,7 @@ func modelToSummary(m *machine.Machine) camplocal.MachineSummary {
 	networkInterfaces := networkInterfaceModelsToSummaryList(m.NetworkInterfaces)
 	volumes := volumeModelsToSummaryList(m.Volumes)
 	addresses := addressModelsToSummaryList(m.Addresses)
+	tags := domainToTags(m.Tags)
 
 	return camplocal.MachineSummary{
 		Identifier: m.Identifier.String(),
@@ -21,7 +22,7 @@ func modelToSummary(m *machine.Machine) camplocal.MachineSummary {
 			Status:      camplocal.MachineStatus(m.Status.String()),
 			LastChecked: float64(m.LastHeartbeat.Unix()),
 		},
-		Tags:              []camplocal.Tag{},
+		Tags:              tags,
 		System:            system,
 		CPU:               cpu,
 		Memory:            memory,

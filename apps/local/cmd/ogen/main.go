@@ -68,8 +68,8 @@ func main() {
 	log.Debug().Msg("Initializing Server")
 	srv, err := ogen.NewCampLocalServer(hdl, ogen.Config{
 		ServiceName:    "CampLocal",
-		MetricsAddress: "127.0.0.1:8032",
-		ApiAddress:     "127.0.0.1:7032",
+		MetricsAddress: "127.0.0.1:9032",
+		ApiAddress:     "127.0.0.1:8032",
 		ApiKeys:        []string{"a"},
 		AgentKeys:      []string{"a"},
 	})

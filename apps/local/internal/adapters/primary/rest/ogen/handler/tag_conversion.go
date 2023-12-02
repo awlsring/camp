@@ -27,3 +27,14 @@ func tagsToDomain(tagList []camplocal.Tag) ([]*tag.Tag, error) {
 	}
 	return tags, nil
 }
+
+func domainToTags(tags []*tag.Tag) []camplocal.Tag {
+	tagList := make([]camplocal.Tag, len(tags))
+	for i, t := range tags {
+		tagList[i] = camplocal.Tag{
+			Key:   t.Key.String(),
+			Value: t.Value.String(),
+		}
+	}
+	return tagList
+}
