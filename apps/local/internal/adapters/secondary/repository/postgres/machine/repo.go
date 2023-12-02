@@ -408,6 +408,20 @@ func (r *MachineRepo) Add(ctx context.Context, m *machine.Machine) error {
 	return nil
 }
 
+func (r *MachineRepo) AddTags(ctx context.Context, id machine.Identifier, tags []*tag.Tag) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msgf("Adding tags to machine %s", id.String())
+
+	for _, t := range tags {
+		err := r.tagRepo.AddToResource(ctx, t, id.String(), tag.ResourceTypeMachine)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r *MachineRepo) Update(ctx context.Context, m *machine.Machine) error {
 	mid, err := r.Get(ctx, m.Identifier)
 	if err != nil {

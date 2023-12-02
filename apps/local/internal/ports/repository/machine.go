@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
+	"github.com/awlsring/camp/apps/local/internal/core/domain/tag"
 )
 
 var (
@@ -18,6 +19,7 @@ type Machine interface {
 	Get(ctx context.Context, id machine.Identifier) (*machine.Machine, error)
 	List(ctx context.Context, filters *ListMachinesFilters) ([]*machine.Machine, error)
 	Add(ctx context.Context, m *machine.Machine) error
+	AddTags(ctx context.Context, id machine.Identifier, tags []*tag.Tag) error
 	Delete(ctx context.Context, id machine.Identifier) error
 	Update(ctx context.Context, m *machine.Machine) error
 	UpdateHeartbeat(ctx context.Context, id machine.Identifier) error

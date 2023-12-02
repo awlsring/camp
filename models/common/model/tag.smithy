@@ -3,14 +3,19 @@ $version: "2.0"
 namespace awlsring.camp.common.tags
 
 @pattern("^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+){0,127}$")
-string TagString
+@length(min: 1, max: 50)
+string TagKey
+
+@pattern("^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+){0,127}$")
+@length(min: 1, max: 128)
+string TagValue
 
 structure Tag {
     @required
-    key: TagString
+    key: TagKey
 
     @required
-    value: TagString
+    value: TagValue
 }
 
 list Tags {

@@ -11,8 +11,18 @@ type TagSql struct {
 }
 
 func (t *TagSql) ToModel() (*tag.Tag, error) {
+	key, err := tag.TagKeyFromString(t.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	value, err := tag.TagValueFromString(t.Value)
+	if err != nil {
+		return nil, err
+	}
+
 	return &tag.Tag{
-		Key:   t.Key,
-		Value: t.Value,
+		Key:   key,
+		Value: value,
 	}, nil
 }
