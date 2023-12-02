@@ -11,6 +11,6 @@ func (h *Handler) PowerOnMachine(ctx context.Context, req camplocal.PowerOnMachi
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("Invoking power on machine for %s", req.Identifier)
 	return &camplocal.PowerOnMachineResponseContent{
-		Success: true,
+		Status: camplocal.MachineStatusPending,
 	}, nil
 }

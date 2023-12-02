@@ -11,6 +11,6 @@ func (h *Handler) RebootMachine(ctx context.Context, req camplocal.RebootMachine
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("Invoking reboot machine for %s", req.Identifier)
 	return &camplocal.RebootMachineResponseContent{
-		Success: true,
+		Status: camplocal.MachineStatusPending,
 	}, nil
 }

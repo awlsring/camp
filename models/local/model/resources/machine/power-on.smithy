@@ -3,6 +3,7 @@ $version: "2.0"
 namespace awlsring.camp.local
 
 use awlsring.camp.common.exceptions#ResourceNotFoundException
+use awlsring.camp.common.machine#MachineStatus
 use smithy.framework#ValidationException
 
 @documentation(
@@ -18,7 +19,7 @@ operation PowerOnMachine {
 
     output := {
         @required
-        success: Boolean
+        status: MachineStatus
     }
 
     errors: [

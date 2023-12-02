@@ -5,14 +5,18 @@ namespace awlsring.camp.common.machine
 @pattern("^m-[a-zA-Z0-9\b]{32}$")
 string MachineId
 
+@documentation("The power status of a machine")
 enum MachineStatus {
     RUNNING = "Running"
     STARTING = "Starting"
     STOPPING = "Stopping"
+    REBOOTING = "Rebooting"
     STOPPED = "Stopped"
+    PENDING = "Pending"
     UNKNOWN = "Unknown"
 }
 
+@documentation("The class of a machine.")
 enum MachineClass {
     BARE_METAL = "BareMetal"
     VIRTUAL_MACHINE = "VirtualMachine"
