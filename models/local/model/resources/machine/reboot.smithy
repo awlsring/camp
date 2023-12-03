@@ -14,7 +14,7 @@ operation RebootMachine {
     input := {
         @httpLabel
         @required
-        identifier: InternalMachineId
+        identifier: InternalMachineIdentifier
     }
 
     output := {

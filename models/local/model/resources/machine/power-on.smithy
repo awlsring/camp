@@ -7,14 +7,14 @@ use awlsring.camp.common.machine#MachineStatus
 use smithy.framework#ValidationException
 
 @documentation(
-    "Powers on a machine. Requires the machine has a capability that allows `PowerOn` (such as `WakeOnLan`) and is currently in a Stopped state."
+    "Powers on a machine. Requires the machine has a capability of `WakeOnLan` and is currently in a Stopped state."
 )
-@http(method: "POST", uri: "/machine/{identifier}/poweron", code: 200)
-operation PowerOnMachine {
+@http(method: "POST", uri: "/machine/{identifier}/wol", code: 200)
+operation SendMachineWakeOnLan {
     input := {
         @httpLabel
         @required
-        identifier: InternalMachineId
+        identifier: InternalMachineIdentifier
     }
 
     output := {

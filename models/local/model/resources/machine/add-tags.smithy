@@ -12,7 +12,7 @@ operation AddTagsToMachine {
     input := {
         @httpLabel
         @required
-        identifier: InternalMachineId
+        identifier: InternalMachineIdentifier
 
         @required
         @length(min: 1, max: 50)

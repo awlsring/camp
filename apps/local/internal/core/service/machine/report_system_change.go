@@ -8,7 +8,7 @@ import (
 	"github.com/awlsring/camp/internal/pkg/logger"
 )
 
-func (s *machineService) ReportSystemChange(ctx context.Context, id machine.Identifier, class machine.MachineClass, sys *machine.System, cpu *machine.Cpu, mem *machine.Memory, disks []*machine.Disk, nics []*machine.NetworkInterface, vols []*machine.Volume, ips []*machine.IpAddress) error {
+func (s *machineService) ReportSystemChange(ctx context.Context, id machine.Identifier, sys *machine.System, cpu *machine.Cpu, mem *machine.Memory, disks []*machine.Disk, nics []*machine.NetworkInterface, vols []*machine.Volume, ips []*machine.IpAddress) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("Reporting system change of machine %s", id)
 
@@ -20,7 +20,6 @@ func (s *machineService) ReportSystemChange(ctx context.Context, id machine.Iden
 	}
 
 	log.Debug().Msg("Rebuilding machine description")
-	original.Class = class
 	original.System = sys
 	original.Cpu = cpu
 	original.Memory = mem

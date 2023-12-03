@@ -10,6 +10,7 @@ type Machine struct {
 	Identifier        Identifier
 	AgentEndpoint     MachineEndpoint
 	AgentApiKey       AgentKey
+	PowerCapabilities PowerCapabilities
 	Class             MachineClass
 	Tags              []*tag.Tag
 	LastHeartbeat     time.Time
@@ -25,7 +26,7 @@ type Machine struct {
 	Addresses         []*IpAddress
 }
 
-func NewMachine(identifier Identifier, endpoint MachineEndpoint, key AgentKey, class MachineClass, lastHeartbeat time.Time, registeredAt time.Time, updatedAt time.Time, status MachineStatus, system *System, cpu *Cpu, memory *Memory, disks []*Disk, networkInterfaces []*NetworkInterface, volumes []*Volume, addresses []*IpAddress) *Machine {
+func NewMachine(identifier Identifier, endpoint MachineEndpoint, key AgentKey, class MachineClass, lastHeartbeat time.Time, registeredAt time.Time, updatedAt time.Time, status MachineStatus, cap PowerCapabilities, system *System, cpu *Cpu, memory *Memory, disks []*Disk, networkInterfaces []*NetworkInterface, volumes []*Volume, addresses []*IpAddress) *Machine {
 	return &Machine{
 		Identifier:        identifier,
 		AgentEndpoint:     endpoint,
@@ -35,6 +36,7 @@ func NewMachine(identifier Identifier, endpoint MachineEndpoint, key AgentKey, c
 		RegisteredAt:      registeredAt,
 		UpdatedAt:         updatedAt,
 		Status:            status,
+		PowerCapabilities: cap,
 		System:            system,
 		Cpu:               cpu,
 		Memory:            memory,

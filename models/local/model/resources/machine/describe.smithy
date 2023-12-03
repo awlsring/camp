@@ -21,7 +21,7 @@ operation DescribeMachine {
 structure DescribeMachineInput {
     @httpLabel
     @required
-    identifier: InternalMachineId
+    identifier: InternalMachineIdentifier
 }
 
 @output

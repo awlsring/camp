@@ -14,19 +14,21 @@ use awlsring.camp.common.machine#MachineVolumeSummaries
 use awlsring.camp.common.tags#Tags
 
 resource Machine {
-    identifiers: {identifier: InternalMachineId}
+    identifiers: {identifier: InternalMachineIdentifier}
     read: DescribeMachine
     list: ListMachines
-    operations: [PowerOnMachine, PowerOffMachine, RebootMachine, AddTagsToMachine, RemoveTagFromMachine]
+    operations: [SendMachineWakeOnLan, PowerOffMachine, RebootMachine, AddTagsToMachine, RemoveTagFromMachine]
 }
 
-string InternalMachineId
+@documentation("The machine's internal identifier.")
+@length(min: 1, max: 128)
+string InternalMachineIdentifier
 
 @documentation("Summarized information about a machine")
 structure MachineSummary {
     @documentation("The machine identifier")
     @required
-    identifier: InternalMachineId
+    identifier: InternalMachineIdentifier
 
     @documentation("Information about the machine status")
     @required
@@ -39,7 +41,8 @@ structure MachineSummary {
     tags: Tags
 
     @documentation("The power state capabilities of a machine.")
-    powerCapabilities: MachinePowerCapabilities
+    @required
+    powerCapabilities: MachinePowerCapabilitiesSummary
 
     @documentation("Information about the machine system")
     @required

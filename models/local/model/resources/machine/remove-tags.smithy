@@ -13,7 +13,7 @@ operation RemoveTagFromMachine {
     input := {
         @httpLabel
         @required
-        identifier: InternalMachineId
+        identifier: InternalMachineIdentifier
 
         @httpLabel
         @required

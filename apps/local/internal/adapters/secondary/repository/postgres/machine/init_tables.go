@@ -19,6 +19,17 @@ func (r *MachineRepo) initTables() error {
 			status VARCHAR(255) NOT NULL
 		);`
 
+	createPowerCapabilityTable := `
+		CREATE TABLE IF NOT EXISTS power_capabilites (
+			id SERIAL PRIMARY KEY,
+			reboot_enabled BOOLEAN NOT NULL,
+			power_off_enabled BOOLEAN NOT NULL,
+			wake_on_lan_enabled BOOLEAN NOT NULL,
+			wake_on_lan_mac VARCHAR(255),
+			machine_id VARCHAR(64) NOT NULL,
+			FOREIGN KEY (machine_id) REFERENCES machines(identifier)
+		);`
+
 	createSystemsTables := `
 		CREATE TABLE IF NOT EXISTS system_models (
 			id SERIAL PRIMARY KEY,
@@ -110,6 +121,7 @@ func (r *MachineRepo) initTables() error {
 
 	tableQueries := []string{
 		createMachinesTable,
+		createPowerCapabilityTable,
 		createSystemsTables,
 		createCpusTable,
 		createMemoryTable,

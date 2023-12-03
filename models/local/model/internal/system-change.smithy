@@ -19,6 +19,10 @@ operation ReportSystemChange {
 @input
 structure ReportSystemChangeInput {
     @required
+    @required
+    identifier: InternalMachineIdentifier
+
+    @required
     summary: ReportedMachineSummary
 }
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
 	"github.com/awlsring/camp/internal/pkg/logger"
@@ -10,13 +11,11 @@ import (
 
 func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestContent) (camplocal.RegisterRes, error) {
 	log := logger.FromContext(ctx)
+	log.Debug().Msg("Registering new machine")
 
-	log.Debug().Msg("Invoke Register")
-	log.Debug().Msgf("Summary: %+v", req.Summary)
-
-	id, err := machine.IdentifierFromString(req.Summary.InternalIdentifier)
+	id, err := machine.IdentifierFromString(req.InternalIdentifier)
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.Summary.InternalIdentifier)
+		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.InternalIdentifier)
 		return nil, err
 	}
 
@@ -32,47 +31,100 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 		return nil, err
 	}
 
-	class, err := machine.MachineClassFromString(string(req.Summary.GetClass().Value))
+	class, err := machine.MachineClassFromString(string(req.Class.Value))
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class.Value)
+		log.Error().Err(err).Msgf("Failed to parse class %s", req.Class.Value)
 		return nil, err
 	}
 
-	sys := systemSummaryToDomain(req.Summary.System)
-	cpu := cpuSummaryToDomain(req.Summary.CPU)
-	mem := memorySummaryToDomain(req.Summary.Memory)
-	disk, err := diskSummariesToDomain(req.Summary.Disks)
+	sys := systemSummaryToDomain(req.SystemSummary.System)
+	cpu := cpuSummaryToDomain(req.SystemSummary.CPU)
+	mem := memorySummaryToDomain(req.SystemSummary.Memory)
+	disk, err := diskSummariesToDomain(req.SystemSummary.Disks)
 
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse disk summaries")
 		return nil, err
 	}
 
-	nic, err := networkInterfaceSummariesToDomain(req.Summary.NetworkInterfaces)
+	cap, err := capabilitySummaryToDomain(req.PowerCapabilities)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to parse power capabilities")
+		return nil, err
+	}
+
+	nic, err := networkInterfaceSummariesToDomain(req.SystemSummary.NetworkInterfaces)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse network interface summaries")
 		return nil, err
 	}
 
-	vol, err := volumeSummariesToDomain(req.Summary.Volumes)
+	vol, err := volumeSummariesToDomain(req.SystemSummary.Volumes)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse volume summaries")
 		return nil, err
 	}
 
-	ips, err := addressSummariesToDomain(req.Summary.Addresses)
+	ips, err := addressSummariesToDomain(req.SystemSummary.Addresses)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to parse ip address summaries")
 		return nil, err
 	}
 
-	err = h.mSvc.RegisterMachine(ctx, id, endpoint, key, class, sys, cpu, mem, disk, nic, vol, ips)
+	err = h.mSvc.RegisterMachine(ctx, id, endpoint, key, class, cap, sys, cpu, mem, disk, nic, vol, ips)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to register machine")
 		return nil, err
 	}
 	return &camplocal.RegisterResponseContent{
 		Success: true,
+	}, nil
+}
+
+func capabilitySummaryToDomain(sum camplocal.OptReportedPowerCapabilitiesSummary) (machine.PowerCapabilities, error) {
+	defaultCaps := machine.PowerCapabilities{
+		Reboot:    machine.PowerCapabilityReboot{Enabled: false},
+		PowerOff:  machine.PowerCapabilityPowerOff{Enabled: false},
+		WakeOnLan: machine.PowerCapabilityWakeOnLan{Enabled: false},
+	}
+	if !sum.IsSet() {
+		return defaultCaps, nil
+	}
+	var reboot machine.PowerCapabilityReboot
+	if sum.Value.Reboot.IsSet() {
+		reboot = machine.PowerCapabilityReboot{
+			Enabled: sum.Value.Reboot.Value.Enabled,
+		}
+	}
+
+	var powerOff machine.PowerCapabilityPowerOff
+	if sum.Value.PowerOff.IsSet() {
+		powerOff = machine.PowerCapabilityPowerOff{
+			Enabled: sum.Value.PowerOff.Value.Enabled,
+		}
+	}
+
+	var wakeOnLan machine.PowerCapabilityWakeOnLan
+	if sum.Value.WakeOnLan.IsSet() {
+		wakeOnLan = machine.PowerCapabilityWakeOnLan{
+			Enabled: sum.Value.WakeOnLan.Value.Enabled,
+		}
+		if sum.Value.WakeOnLan.Value.Enabled && !sum.Value.WakeOnLan.Value.MacAddress.IsSet() {
+			return defaultCaps, fmt.Errorf("enabling wake on lan requires a mac address")
+		}
+		if sum.Value.WakeOnLan.Value.MacAddress.IsSet() {
+			mac, err := machine.MacAddressFromString(sum.Value.WakeOnLan.Value.MacAddress.Value)
+			if err != nil {
+				return defaultCaps, err
+			}
+			wakeOnLan.MacAddress = &mac
+		}
+	}
+
+	return machine.PowerCapabilities{
+		Reboot:    reboot,
+		PowerOff:  powerOff,
+		WakeOnLan: wakeOnLan,
 	}, nil
 }
 

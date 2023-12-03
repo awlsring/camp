@@ -6,6 +6,7 @@ import (
 )
 
 func modelToSummary(m *machine.Machine) camplocal.MachineSummary {
+	cap := powerCapabilitiesToSummary(m.PowerCapabilities)
 	system := systemModelToSummary(m.System)
 	cpu := cpuModelToSummary(m.Cpu)
 	memory := memoryModelToSummary(m.Memory)
@@ -22,6 +23,7 @@ func modelToSummary(m *machine.Machine) camplocal.MachineSummary {
 			Status:      camplocal.MachineStatus(m.Status.String()),
 			LastChecked: float64(m.LastHeartbeat.Unix()),
 		},
+		PowerCapabilities: cap,
 		Tags:              tags,
 		System:            system,
 		CPU:               cpu,
@@ -30,6 +32,29 @@ func modelToSummary(m *machine.Machine) camplocal.MachineSummary {
 		NetworkInterfaces: networkInterfaces,
 		Volumes:           volumes,
 		Addresses:         addresses,
+	}
+}
+
+func powerCapabilitiesToSummary(cap machine.PowerCapabilities) camplocal.MachinePowerCapabilitiesSummary {
+	reboot := camplocal.MachinePowerCapabilityRebootSummary{
+		Enabled: cap.Reboot.Enabled,
+	}
+
+	powerOff := camplocal.MachinePowerCapabilityPowerOffSummary{
+		Enabled: cap.PowerOff.Enabled,
+	}
+
+	wakeOnLan := camplocal.MachinePowerCapabilityWakeOnLanSummary{
+		Enabled: cap.WakeOnLan.Enabled,
+	}
+	if cap.WakeOnLan.MacAddress != nil {
+		wakeOnLan.MacAddress = camplocal.NewOptString(cap.WakeOnLan.MacAddress.String())
+	}
+
+	return camplocal.MachinePowerCapabilitiesSummary{
+		Reboot:    reboot,
+		PowerOff:  powerOff,
+		WakeOnLan: wakeOnLan,
 	}
 }
 

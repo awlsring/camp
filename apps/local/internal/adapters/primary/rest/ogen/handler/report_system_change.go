@@ -12,15 +12,9 @@ func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSy
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("Invoke ReportSystemChange")
 
-	id, err := machine.IdentifierFromString(req.Summary.InternalIdentifier)
+	id, err := machine.IdentifierFromString(req.Identifier)
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.Summary.InternalIdentifier)
-		return nil, err
-	}
-
-	class, err := machine.MachineClassFromString(string(req.Summary.GetClass().Value))
-	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse class %s", req.Summary.Class.Value)
+		log.Error().Err(err).Msgf("Failed to parse identifier %s", req.Identifier)
 		return nil, err
 	}
 
@@ -52,7 +46,7 @@ func (h Handler) ReportSystemChange(ctx context.Context, req *camplocal.ReportSy
 		return nil, err
 	}
 
-	err = h.mSvc.ReportSystemChange(ctx, id, class, sys, cpu, mem, disk, nic, vol, ips)
+	err = h.mSvc.ReportSystemChange(ctx, id, sys, cpu, mem, disk, nic, vol, ips)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to update machine")
 		return nil, err

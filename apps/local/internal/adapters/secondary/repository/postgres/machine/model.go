@@ -13,6 +13,7 @@ type MachineSql struct {
 	RegisteredAt      time.Time `db:"registered_at"`
 	UpdatedAt         time.Time `db:"updated_at"`
 	Status            string    `db:"status"`
+	PowerCapabilities *PowerCapabilityModelSql
 	System            *SystemModelSql
 	Cpu               *CpuModelSql
 	Memory            *MemoryModelSql
@@ -94,6 +95,36 @@ func (m *MachineSql) ToModel() (*machine.Machine, error) {
 		Addresses:         addresses,
 	}, nil
 
+}
+
+type PowerCapabilityModelSql struct {
+	Reboot       bool    `db:"reboot_enabled"`
+	PowerOff     bool    `db:"power_off_enabled"`
+	WakeOnLan    bool    `db:"wake_on_lan_enabled"`
+	WakeOnLanMac *string `db:"wake_on_lan_mac,omitempty"`
+	Id           int64   `db:"id"`
+	MachineId    string  `db:"machine_id"`
+}
+
+func (p *PowerCapabilityModelSql) ToModel() machine.PowerCapabilities {
+	var mac *machine.MacAddress
+	if p.WakeOnLanMac != nil {
+		m, _ := machine.MacAddressFromString(*p.WakeOnLanMac)
+		mac = &m
+	}
+
+	return machine.PowerCapabilities{
+		Reboot: machine.PowerCapabilityReboot{
+			Enabled: p.Reboot,
+		},
+		PowerOff: machine.PowerCapabilityPowerOff{
+			Enabled: p.PowerOff,
+		},
+		WakeOnLan: machine.PowerCapabilityWakeOnLan{
+			Enabled:    p.WakeOnLan,
+			MacAddress: mac,
+		},
+	}
 }
 
 type SystemModelSql struct {

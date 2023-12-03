@@ -6,10 +6,16 @@ import (
 
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
 	"github.com/awlsring/camp/apps/local/internal/core/domain/tag"
+	"github.com/awlsring/camp/internal/pkg/logger"
 )
 
 func (r *MachineRepo) Add(ctx context.Context, m *machine.Machine) error {
 	err := r.createMachineEntry(ctx, m)
+	if err != nil {
+		return err
+	}
+
+	err = r.createPowerCapabilityModel(ctx, m.Identifier, m.PowerCapabilities)
 	if err != nil {
 		return err
 	}
@@ -69,6 +75,28 @@ func (r *MachineRepo) Add(ctx context.Context, m *machine.Machine) error {
 func (r *MachineRepo) createMachineEntry(ctx context.Context, m *machine.Machine) error {
 	now := time.Now()
 	_, err := r.database.ExecContext(ctx, "INSERT INTO machines (identifier, endpoint, key, class, last_heartbeat, registered_at, updated_at, status) VALUES ($1, $2, $3, $4, $5, $6)", m.Identifier.String(), m.AgentEndpoint.String(), m.AgentApiKey, m.Class.String(), now, now, now, machine.MachineStatusRunning.String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *MachineRepo) createPowerCapabilityModel(ctx context.Context, mid machine.Identifier, cap machine.PowerCapabilities) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msgf("Creating power capability model for machine %s", mid)
+
+	rebootEnabled := cap.Reboot.Enabled
+
+	powerOffEnabled := cap.PowerOff.Enabled
+
+	wakeOnLanEnabled := cap.WakeOnLan.Enabled
+
+	var wakeOnLanMac string
+	if cap.WakeOnLan.MacAddress != nil {
+		wakeOnLanMac = cap.WakeOnLan.MacAddress.String()
+	}
+
+	_, err := r.database.ExecContext(ctx, "INSERT INTO power_capabilities (reboot_enabled, power_off_enabled, wake_on_lan_enabled, wake_on_lan_mac, machine_id) VALUES ($1, $2, $3, $4, $5)", rebootEnabled, powerOffEnabled, wakeOnLanEnabled, wakeOnLanMac, mid)
 	if err != nil {
 		return err
 	}
