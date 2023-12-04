@@ -17,13 +17,6 @@ structure InvalidPowerStateException {
 }
 
 @error("client")
-@httpError(400)
-structure CapabilityNotEnabledException {
-    @required
-    message: String
-}
-
-@error("client")
 @httpError(404)
 structure ResourceNotFoundException {
     @required

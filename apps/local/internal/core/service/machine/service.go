@@ -9,7 +9,7 @@ import (
 var _ service.Machine = &machineService{}
 
 type machineService struct {
-	powerTopic topic.Power
+	powerTopic topic.PowerChange
 	repo       repository.Machine
 }
 

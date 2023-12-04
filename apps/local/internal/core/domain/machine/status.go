@@ -18,7 +18,8 @@ const (
 	MachineStatusStopped
 	MachineStatusStopping
 	MachineStatusStarting
-	MachineStatusRestarting
+	MachineStatusRebooting
+	MachineStatusPending
 	MachineStatusUnknown
 )
 
@@ -32,8 +33,10 @@ func MachineStatusFromString(v string) (MachineStatus, error) {
 		return MachineStatusStopping, nil
 	case "starting":
 		return MachineStatusStarting, nil
-	case "restarting":
-		return MachineStatusRestarting, nil
+	case "restarting", "rebooting":
+		return MachineStatusRebooting, nil
+	case "pending":
+		return MachineStatusPending, nil
 	default:
 		return MachineStatusUnknown, camperror.New(camperror.ErrValidation, ErrInvalidStatus)
 	}
@@ -49,8 +52,10 @@ func (m MachineStatus) String() string {
 		return "Stopping"
 	case MachineStatusStarting:
 		return "Starting"
-	case MachineStatusRestarting:
-		return "Restarting"
+	case MachineStatusRebooting:
+		return "Rebooting"
+	case MachineStatusPending:
+		return "Pending"
 	default:
 		return "Unknown"
 	}

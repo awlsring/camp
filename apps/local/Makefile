@@ -29,6 +29,6 @@ build: codegen
 	@echo "Building Camp Local app"
 	go mod tidy
 	@echo "Building Camp Local Rest API"
-	go build -o $(CUR_DIR)/build/bin/camplocalrest $(CUR_DIR)/cmd/ogen/main.go
+	go build -o $(CUR_DIR)/build/bin/camplocalrest $(CUR_DIR)/cmd/api/main.go
 
 .PHONY: all

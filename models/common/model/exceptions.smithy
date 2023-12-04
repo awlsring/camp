@@ -23,6 +23,13 @@ structure UnauthorizedException {
     message: String
 }
 
+@error("client")
+@httpError(400)
+structure CapabilityNotEnabledException {
+    @required
+    message: String
+}
+
 @error("server")
 @httpError(500)
 structure InternalServerException {
