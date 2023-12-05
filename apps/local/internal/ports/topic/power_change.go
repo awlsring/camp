@@ -7,5 +7,5 @@ import (
 )
 
 type PowerChange interface {
-	SendPowerChangeRequest(ctx context.Context, msg *power.PowerChangeRequestMessage) error
+	SendPowerChangeRequest(ctx context.Context, msg *power.RequestStateChangeMessage) error
 }

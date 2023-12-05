@@ -38,11 +38,11 @@ func (t *PowerChangeExchange) Init(ctx context.Context, channel *amqp.Channel) e
 	return nil
 }
 
-func (t *PowerChangeExchange) SendPowerChangeRequest(ctx context.Context, msg *power.PowerChangeRequestMessage) error {
+func (t *PowerChangeExchange) SendPowerChangeRequest(ctx context.Context, msg *power.RequestStateChangeMessage) error {
 	log := logger.FromContext(ctx)
 
-	jsonMsg := PowerChangeRequestMessageJsonFromDomain(msg)
-	b, err := jsonMsg.ToJson()
+	log.Debug().Msg("converting power change request message to json")
+	b, err := msg.ToJson()
 	if err != nil {
 		return err
 	}

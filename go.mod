@@ -27,7 +27,11 @@ require (
 	golang.org/x/sync v0.5.0
 )
 
-require github.com/rabbitmq/amqp091-go v1.9.0 // indirect
+require (
+	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect

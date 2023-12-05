@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	power_change_topic "github.com/awlsring/camp/apps/local/internal/adapters/secondary/topic/rabbitmq/power_change"
 	"github.com/awlsring/camp/apps/local/internal/core/domain/machine"
 	"github.com/awlsring/camp/apps/local/internal/core/domain/power"
 	"github.com/awlsring/camp/apps/local/internal/ports/service"
@@ -28,7 +27,7 @@ func (p *PowerChangeRequestJob) Execute(ctx context.Context, msg []byte) error {
 	log.Info().Msgf("handling message: %s", string(msg))
 
 	log.Debug().Msgf("unmarshalling message")
-	var message power_change_topic.PowerChangeRequestMessageJson
+	var message power.RequestStateChangeMessageJson
 	err := json.Unmarshal(msg, &message)
 	if err != nil {
 		log.Error().Err(err).Msgf("failed to unmarshal message")
@@ -107,7 +106,7 @@ func (p *PowerChangeRequestJob) pollTillChanged(ctx context.Context, deadline ti
 	return nil
 }
 
-func (p *PowerChangeRequestJob) powerOff(ctx context.Context, msg *power.PowerChangeRequestMessage) error {
+func (p *PowerChangeRequestJob) powerOff(ctx context.Context, msg *power.RequestStateChangeMessage) error {
 	log := logger.FromContext(ctx)
 	log.Info().Msgf("powering off machine %s", msg.Identifier.String())
 	log.Debug().Msgf("validating message")
@@ -137,7 +136,7 @@ func (p *PowerChangeRequestJob) powerOff(ctx context.Context, msg *power.PowerCh
 	return err
 }
 
-func (p *PowerChangeRequestJob) reboot(ctx context.Context, msg *power.PowerChangeRequestMessage) error {
+func (p *PowerChangeRequestJob) reboot(ctx context.Context, msg *power.RequestStateChangeMessage) error {
 	log := logger.FromContext(ctx)
 	log.Info().Msgf("rebooting machine %s", msg.Identifier.String())
 	log.Debug().Msgf("validating message")
@@ -168,7 +167,7 @@ func (p *PowerChangeRequestJob) reboot(ctx context.Context, msg *power.PowerChan
 	return err
 }
 
-func (p *PowerChangeRequestJob) wakeOnLan(ctx context.Context, msg *power.PowerChangeRequestMessage) error {
+func (p *PowerChangeRequestJob) wakeOnLan(ctx context.Context, msg *power.RequestStateChangeMessage) error {
 	log := logger.FromContext(ctx)
 	log.Info().Msgf("waking up machine %s", msg.Identifier.String())
 	log.Debug().Msgf("validating message")

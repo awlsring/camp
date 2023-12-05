@@ -27,7 +27,7 @@ func (s *machineService) RequestPowerChange(ctx context.Context, id machine.Iden
 	}
 
 	log.Debug().Msg("Validating capability is enabled and building message")
-	var msg *power.PowerChangeRequestMessage
+	var msg *power.RequestStateChangeMessage
 	switch changeType {
 	case power.ChangeTypeWakeOnLan:
 		msg, err = formWakeOnLanMessage(ctx, m)
@@ -54,7 +54,7 @@ func (s *machineService) RequestPowerChange(ctx context.Context, id machine.Iden
 	return nil
 }
 
-func formWakeOnLanMessage(ctx context.Context, m *machine.Machine) (*power.PowerChangeRequestMessage, error) {
+func formWakeOnLanMessage(ctx context.Context, m *machine.Machine) (*power.RequestStateChangeMessage, error) {
 	log := logger.FromContext(ctx)
 
 	log.Debug().Msg("Validating WOL capability is enabled")
@@ -81,7 +81,7 @@ func formWakeOnLanMessage(ctx context.Context, m *machine.Machine) (*power.Power
 	return msg, nil
 }
 
-func formPowerOffMessage(ctx context.Context, m *machine.Machine) (*power.PowerChangeRequestMessage, error) {
+func formPowerOffMessage(ctx context.Context, m *machine.Machine) (*power.RequestStateChangeMessage, error) {
 	log := logger.FromContext(ctx)
 
 	log.Debug().Msg("Validating capability is enabled")
@@ -103,7 +103,7 @@ func formPowerOffMessage(ctx context.Context, m *machine.Machine) (*power.PowerC
 	return msg, nil
 }
 
-func formRebootMessage(ctx context.Context, m *machine.Machine) (*power.PowerChangeRequestMessage, error) {
+func formRebootMessage(ctx context.Context, m *machine.Machine) (*power.RequestStateChangeMessage, error) {
 	log := logger.FromContext(ctx)
 
 	log.Debug().Msg("Validating capability is enabled")
