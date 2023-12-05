@@ -3,7 +3,6 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/awlsring/camp/internal/pkg/logger"
 	"github.com/awlsring/camp/internal/pkg/worker"
@@ -18,31 +17,55 @@ type WorkerOpt func(*Worker)
 
 func WithName(name string) WorkerOpt {
 	return func(w *Worker) {
-		w.name = name
+		worker.SetName(name)(w.WorkerBase)
 	}
 }
 
-type Worker struct {
-	jobChannel     chan *amqp.Delivery
-	exchange       *exchange.Definition
-	queue          *queue.Definition
-	concurrentJobs uint32
-	runningJobs    uint32
-	job            worker.Job
-	name           string
-	channel        *amqp.Channel
+func WithGetWorkFunc(getWork worker.GetWorkFunc) WorkerOpt {
+	return func(w *Worker) {
+		worker.SetGetWorkFunc(getWork)(w.WorkerBase)
+	}
 }
 
+// A RabbitMQ worker that will subscribe to a queue and execute a job for each message received
+type Worker struct {
+	exchange *exchange.Definition
+	queue    *queue.Definition
+	channel  *amqp.Channel
+	*worker.WorkerBase
+}
+
+// Returns a new RabbitMQ worker. The worker assumes that the exchange and queue have already been declared.
 func NewWorker(channel *amqp.Channel, jobDef *JobDefinition, opts ...WorkerOpt) *Worker {
-	jobChan := make(chan *amqp.Delivery, jobDef.ConcurrentJobs)
+	name := fmt.Sprintf("%s-worker", jobDef.Queue.Name)
+
+	getWork := func(ctx context.Context, jobChannel chan []byte) {
+		log := logger.FromContext(ctx)
+		msgs, err := channel.Consume(
+			jobDef.Queue.Name, // queue
+			name,              // consumer
+			true,              // auto ack
+			false,             // exclusive
+			false,             // no local
+			false,             // no wait
+			nil,               // args
+		)
+		if err != nil {
+			log.Error().Err(err).Msgf("failed to consume from queue %s", jobDef.Queue.Name)
+			return
+		}
+
+		for d := range msgs {
+			log.Debug().Msgf("received a message: %s", d.Body)
+			jobChannel <- d.Body
+		}
+	}
+
 	worker := &Worker{
-		jobChannel:     jobChan,
-		exchange:       jobDef.Exchange,
-		queue:          jobDef.Queue,
-		concurrentJobs: jobDef.ConcurrentJobs,
-		job:            jobDef.Job,
-		name:           fmt.Sprintf("%s-worker", jobDef.Queue.Name),
-		channel:        channel,
+		exchange:   jobDef.Exchange,
+		queue:      jobDef.Queue,
+		channel:    channel,
+		WorkerBase: worker.NewWorkerBase(name, jobDef.ConcurrentJobs, jobDef.Job, getWork),
 	}
 
 	for _, opt := range opts {
@@ -52,57 +75,44 @@ func NewWorker(channel *amqp.Channel, jobDef *JobDefinition, opts ...WorkerOpt) 
 	return worker
 }
 
-func (a *Worker) process(ctx context.Context, wg *sync.WaitGroup, procNum int) {
-	log := logger.FromContext(ctx)
-
-	defer wg.Done()
-
-	log.Debug().Msgf("starting worker %s process %d", a.name, procNum)
-	for {
-		select {
-		case <-ctx.Done():
-			log.Debug().Msgf("worker %s process %d context done, stopping", a.name, procNum)
-			return
-		case job := <-a.jobChannel:
-			log.Debug().Msgf("worker %s process %d received task", a.name, procNum)
-
-			log.Debug().Msgf("worker %s process %d executing task", a.name, procNum)
-			err := a.job.Execute(ctx, job.Body)
-			if err != nil {
-				log.Error().Err(err).Msgf("worker %s process %d failed to execute task", a.name, procNum)
-			}
-
-			log.Debug().Msgf("worker %s process %d completed task", a.name, procNum)
-		}
-	}
-}
-
 func (a *Worker) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (a *Worker) Name() string {
-	return a.name
-}
-
 func (w *Worker) init(ctx context.Context) error {
 	log := logger.FromContext(ctx)
-	log.Debug().Msg("initializing rabbitmq worker")
 
-	log.Debug().Msg("declaring power request exchange")
+	log.Debug().Msg("Declaring power request exchange")
 	err := w.exchange.CreateExchange(ctx, w.channel)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to declare power request exchange")
+		log.Error().Err(err).Msg("Failed to declare power request exchange")
 		return err
 	}
 
+	log.Debug().Msg("Declaring power request queue and bind")
 	_, err = w.queue.CreateBindedQueue(ctx, w.channel)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to declare power request exchange")
+		log.Error().Err(err).Msg("Failed to declare power request exchange")
 		return err
 	}
 
+	log.Debug().Msg("RabbitMQ worker resources initialized")
 	return nil
+}
+
+func (w *Worker) Start(ctx context.Context) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msg("Starting RabbitMQ worker")
+
+	log.Debug().Msg("Initing the worker")
+	err := w.init(ctx)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to init the worker")
+		return err
+	}
+
+	log.Debug().Msg("Starting the base worker")
+	return w.WorkerBase.Start(ctx)
 }
 
 func (w *Worker) createQueueAndBind(ctx context.Context, queue queue.Definition) (*amqp.Queue, error) {
@@ -123,50 +133,4 @@ func (w *Worker) createQueueAndBind(ctx context.Context, queue queue.Definition)
 	}
 
 	return &q, nil
-}
-
-func (w *Worker) Start(ctx context.Context) error {
-	log := logger.FromContext(ctx)
-
-	err := w.init(ctx)
-	if err != nil {
-		return err
-	}
-
-	log.Debug().Msg("starting rabbitmq act")
-	var wg sync.WaitGroup
-	for i := 0; uint32(i) < w.concurrentJobs; i++ {
-		wg.Add(1)
-		go w.process(ctx, &wg, i)
-	}
-	log.Debug().Msg("rabbitmq act started")
-
-	msgs, err := w.channel.Consume(
-		w.queue.Name, // queue
-		w.name,       // consumer
-		true,         // auto ack
-		false,        // exclusive
-		false,        // no local
-		false,        // no wait
-		nil,          // args
-	)
-	if err != nil {
-		return err
-	}
-
-	// TODO: handle max jobs
-	go func() {
-		for d := range msgs {
-			log.Debug().Msgf("received a message: %s", d.Body)
-			w.jobChannel <- &d
-			// d.Ack(false)
-		}
-	}()
-
-	<-ctx.Done()
-	log.Debug().Msg("rabbitmq act context done, stopping")
-	wg.Wait()
-	log.Debug().Msg("rabbitmq act stopped")
-	return nil
-
 }
