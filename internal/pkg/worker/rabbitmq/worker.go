@@ -1,4 +1,4 @@
-package rabbitmq_worker
+package rabbitmq
 
 import (
 	"context"
@@ -6,11 +6,21 @@ import (
 	"sync"
 
 	"github.com/awlsring/camp/internal/pkg/logger"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/exchange"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/job"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/queue"
+	"github.com/awlsring/camp/internal/pkg/worker"
+	"github.com/awlsring/camp/internal/pkg/worker/rabbitmq/exchange"
+	"github.com/awlsring/camp/internal/pkg/worker/rabbitmq/queue"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+var _ worker.Worker = &Worker{}
+
+type WorkerOpt func(*Worker)
+
+func WithName(name string) WorkerOpt {
+	return func(w *Worker) {
+		w.name = name
+	}
+}
 
 type Worker struct {
 	jobChannel     chan *amqp.Delivery
@@ -18,22 +28,28 @@ type Worker struct {
 	queue          *queue.Definition
 	concurrentJobs uint32
 	runningJobs    uint32
-	job            job.Job
+	job            worker.Job
 	name           string
 	channel        *amqp.Channel
 }
 
-func NewWorker(channel *amqp.Channel, queue *queue.Definition, exchange *exchange.Definition, concurrentJobs uint32, job job.Job) *Worker {
-	jobChan := make(chan *amqp.Delivery, concurrentJobs)
-	return &Worker{
+func NewWorker(channel *amqp.Channel, jobDef *JobDefinition, opts ...WorkerOpt) *Worker {
+	jobChan := make(chan *amqp.Delivery, jobDef.ConcurrentJobs)
+	worker := &Worker{
 		jobChannel:     jobChan,
-		exchange:       exchange,
-		queue:          queue,
-		concurrentJobs: concurrentJobs,
-		job:            job,
-		name:           fmt.Sprintf("%s-worker", queue.Name),
+		exchange:       jobDef.Exchange,
+		queue:          jobDef.Queue,
+		concurrentJobs: jobDef.ConcurrentJobs,
+		job:            jobDef.Job,
+		name:           fmt.Sprintf("%s-worker", jobDef.Queue.Name),
 		channel:        channel,
 	}
+
+	for _, opt := range opts {
+		opt(worker)
+	}
+
+	return worker
 }
 
 func (a *Worker) process(ctx context.Context, wg *sync.WaitGroup, procNum int) {
@@ -63,6 +79,10 @@ func (a *Worker) process(ctx context.Context, wg *sync.WaitGroup, procNum int) {
 
 func (a *Worker) Stop(ctx context.Context) error {
 	return nil
+}
+
+func (a *Worker) Name() string {
+	return a.name
 }
 
 func (w *Worker) init(ctx context.Context) error {
@@ -134,10 +154,12 @@ func (w *Worker) Start(ctx context.Context) error {
 		return err
 	}
 
+	// TODO: handle max jobs
 	go func() {
 		for d := range msgs {
 			log.Debug().Msgf("received a message: %s", d.Body)
 			w.jobChannel <- &d
+			// d.Ack(false)
 		}
 	}()
 
@@ -147,28 +169,4 @@ func (w *Worker) Start(ctx context.Context) error {
 	log.Debug().Msg("rabbitmq act stopped")
 	return nil
 
-	// for {
-	// 	select {
-	// 	case <-ctx.Done():
-	// 		log.Debug().Msg("rabbitmq act context done, stopping")
-	// 		err := a.Stop(ctx)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	}
-
-	// 	// wait for tasks to come on queue and send to chan
-	// 	runningJobs := a.runningJobs
-	// 	log.Debug().Msgf("Current running jobs: %d", runningJobs)
-
-	// 	if runningJobs >= a.concurrentJobs {
-	// 		log.Debug().Msg("rabbitmq act running jobs at capacity, waiting for jobs to complete")
-	// 		time.Sleep(1 * time.Second)
-	// 		continue
-	// 	}
-
-	// 	//poll
-	// 	// ????
-
-	// }
 }

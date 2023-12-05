@@ -1,29 +1,25 @@
-package rabbitmq_worker
+package worker
 
 import (
 	"context"
 	"sync"
 
 	"github.com/awlsring/camp/internal/pkg/logger"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/job"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type WorkerManagerOpts func(*WorkerManager)
 
 type WorkerManager struct {
-	workers []*Worker
+	workers []Worker
 }
 
-func NewWorkerManager(channel *amqp.Channel, jobDefs []*job.Definition, opts ...WorkerManagerOpts) *WorkerManager {
-	w := &WorkerManager{}
+func NewWorkerManager(workers []Worker, opts ...WorkerManagerOpts) *WorkerManager {
+	w := &WorkerManager{
+		workers: workers,
+	}
 
 	for _, opt := range opts {
 		opt(w)
-	}
-
-	for _, jobDef := range jobDefs {
-		w.workers = append(w.workers, NewWorker(channel, jobDef.Queue, jobDef.Exchange, jobDef.ConcurrentJobs, jobDef.Job))
 	}
 
 	return w
@@ -35,12 +31,14 @@ func (w *WorkerManager) Start(ctx context.Context) error {
 	var wg sync.WaitGroup
 	for _, worker := range w.workers {
 		wg.Add(1)
-		go func(a *Worker) {
+		go func(w Worker) {
 			defer wg.Done()
-			err := a.Start(ctx)
+			log.Debug().Msgf("starting worker %s", w.Name())
+			err := w.Start(ctx)
 			if err != nil {
-				log.Error().Err(err).Msg("failed to start worker")
+				log.Error().Err(err).Msgf("failed to start worker %s", w.Name())
 			}
+			defer w.Stop(ctx)
 		}(worker)
 	}
 	log.Info().Msgf("started %d workers", len(w.workers))

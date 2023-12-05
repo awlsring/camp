@@ -14,10 +14,11 @@ import (
 	"github.com/awlsring/camp/apps/local/internal/core/service/power_control"
 	"github.com/awlsring/camp/internal/pkg/database"
 	"github.com/awlsring/camp/internal/pkg/logger"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/exchange"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/job"
-	"github.com/awlsring/camp/internal/pkg/rabbitmq_worker/queue"
+	"github.com/awlsring/camp/internal/pkg/worker"
+	"github.com/awlsring/camp/internal/pkg/worker/rabbitmq"
+	"github.com/awlsring/camp/internal/pkg/worker/rabbitmq/exchange"
+	"github.com/awlsring/camp/internal/pkg/worker/rabbitmq/queue"
+
 	"github.com/awlsring/camp/internal/pkg/wol"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -85,21 +86,22 @@ func main() {
 
 	exchange := exchange.NewDefinition("power_change", exchange.ExchangeTypeTopic)
 
-	jobs := []*job.Definition{
-		{
-			Queue:          queue.NewDefinition("power_change_request", "power_change.request", "power_change"),
-			Exchange:       exchange,
-			ConcurrentJobs: 10,
-			Job:            powerChangeJob,
-		},
-		{
-			Queue:          queue.NewDefinition("power_change_validate", "power_change.validate", "power_change"),
-			Exchange:       exchange,
-			ConcurrentJobs: 10,
-			Job:            powerChangeJob,
-		},
+	powerChangeJobDef := &rabbitmq.JobDefinition{
+		Queue:          queue.NewDefinition("power_change_request", "power_change.request", "power_change"),
+		Exchange:       exchange,
+		ConcurrentJobs: 10,
+		Job:            powerChangeJob,
 	}
+	requestWorker := rabbitmq.NewWorker(channel, powerChangeJobDef)
 
-	manager := rabbitmq_worker.NewWorkerManager(channel, jobs)
+	validationJobDef := &rabbitmq.JobDefinition{
+		Queue:          queue.NewDefinition("power_change_validate", "power_change.validate", "power_change"),
+		Exchange:       exchange,
+		ConcurrentJobs: 10,
+		Job:            powerChangeJob,
+	}
+	validaitonWorker := rabbitmq.NewWorker(channel, validationJobDef)
+
+	manager := worker.NewWorkerManager([]worker.Worker{requestWorker, validaitonWorker})
 	panicOnError(manager.Start(ctx))
 }
