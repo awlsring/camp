@@ -3,15 +3,17 @@ module github.com/awlsring/camp
 go 1.20
 
 require (
+	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/go-faster/errors v0.7.0
 	github.com/go-faster/jx v1.1.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
-	github.com/ogen-go/ogen v0.78.0
+	github.com/ogen-go/ogen v0.79.1
 	github.com/pkg/errors v0.9.1
 	github.com/povilasv/prommod v0.0.12
 	github.com/prometheus/client_golang v1.17.0
+	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/rs/zerolog v1.31.0
 	github.com/sabhiram/go-wol v0.0.0-20211224004021-c83b0c2f887d
 	go.opentelemetry.io/otel v1.21.0
@@ -27,11 +29,7 @@ require (
 	golang.org/x/sync v0.5.0
 )
 
-require (
-	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
-)
+require github.com/gorilla/websocket v1.5.1 // indirect
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -58,12 +56,12 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
-	golang.org/x/net v0.18.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
+	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231127180814-3a041ad873d4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
