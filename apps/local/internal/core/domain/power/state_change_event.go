@@ -21,7 +21,7 @@ func NewStateChangeMessage(identifier machine.Identifier, was machine.MachineSta
 		Was:        was,
 		Now:        now,
 		Planned:    planned,
-		Time:       time.Now(),
+		Time:       time.Now().UTC(),
 	}
 }
 

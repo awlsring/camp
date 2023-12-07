@@ -73,7 +73,7 @@ func (r *MachineRepo) Add(ctx context.Context, m *machine.Machine) error {
 }
 
 func (r *MachineRepo) createMachineEntry(ctx context.Context, m *machine.Machine) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	_, err := r.database.ExecContext(ctx, "INSERT INTO machines (identifier, endpoint, key, class, last_heartbeat, registered_at, updated_at, status) VALUES ($1, $2, $3, $4, $5, $6)", m.Identifier.String(), m.AgentEndpoint.String(), m.AgentApiKey, m.Class.String(), now, now, now, machine.MachineStatusRunning.String())
 	if err != nil {
 		return err

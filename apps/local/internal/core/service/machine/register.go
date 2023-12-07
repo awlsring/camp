@@ -13,7 +13,7 @@ func (s *machineService) RegisterMachine(ctx context.Context, id machine.Identif
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("Registering machine with identifier %s", id)
 
-	now := time.Now()
+	now := time.Now().UTC()
 	machine := machine.NewMachine(id, endpoint, key, class, now, now, now, machine.MachineStatusRunning, cap, sys, cpu, mem, disks, nics, vols, ips)
 
 	log.Debug().Msgf("Adding machine with identifier %s in repo", id)
