@@ -15,8 +15,15 @@ func (r *MachineRepo) initTables() error {
 			class VARCHAR(255) NOT NULL,
 			last_heartbeat TIMESTAMP NOT NULL,
 			registered_at TIMESTAMP NOT NULL,
+			updated_at TIMESTAMP NOT NULL
+		);`
+
+	createStateTable := `CREATE TABLE IF NOT EXISTS power_state (
+			id SERIAL PRIMARY KEY,
+			state VARCHAR(255) NOT NULL,
 			updated_at TIMESTAMP NOT NULL,
-			status VARCHAR(255) NOT NULL
+			machine_id VARCHAR(64) NOT NULL,
+			FOREIGN KEY (machine_id) REFERENCES machines(identifier)
 		);`
 
 	createPowerCapabilityTable := `
@@ -121,6 +128,7 @@ func (r *MachineRepo) initTables() error {
 
 	tableQueries := []string{
 		createMachinesTable,
+		createStateTable,
 		createPowerCapabilityTable,
 		createSystemsTables,
 		createCpusTable,

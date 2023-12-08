@@ -14,6 +14,14 @@ func (r *MachineRepo) enrichMachineEntry(ctx context.Context, m *MachineSql) err
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("Enriching machine %s", m.Identifier)
 
+	log.Debug().Msgf("Getting machine %s power state", m.Identifier)
+	powerState, err := r.getMachineState(ctx, m.Identifier)
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to get machine %s power state", m.Identifier)
+		return err
+	}
+	m.PowerState = powerState
+
 	log.Debug().Msgf("Getting machine %s power capabilities", m.Identifier)
 	powerCapabilities, err := r.getMachinePowerCapabilities(ctx, m.Identifier)
 	if err != nil {
@@ -97,6 +105,15 @@ func (r *MachineRepo) enrichMachineEntry(ctx context.Context, m *MachineSql) err
 
 	log.Debug().Msgf("Machine %s enriched", m.Identifier)
 	return nil
+}
+
+func (r *MachineRepo) getMachineState(ctx context.Context, id string) (*PowerStateModelSql, error) {
+	var m PowerStateModelSql
+	err := r.database.GetContext(ctx, &m, "SELECT * FROM power_state WHERE machine_id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
 }
 
 func (r *MachineRepo) getMachinePowerCapabilities(ctx context.Context, id string) (*PowerCapabilityModelSql, error) {

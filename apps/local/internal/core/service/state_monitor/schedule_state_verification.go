@@ -39,7 +39,7 @@ func (s *Service) scheduleStateVerificationJob(ctx context.Context, m *machine.M
 	log.Debug().Msgf("scheduling state verification job for machine %s", m.Identifier)
 
 	log.Debug().Msgf("forming state verification job for machine %s", m.Identifier)
-	job := power.NewStateValidationMessage(m.Identifier, m.Status, m.AgentEndpoint.String(), m.AgentApiKey.String())
+	job := power.NewStateValidationMessage(m.Identifier, m.Status, m.AgentEndpoint, m.AgentApiKey)
 
 	log.Debug().Msgf("publishing state verification job for machine %s", m.Identifier)
 	err := s.stateJobTopic.SendStateValidationMessage(ctx, job)

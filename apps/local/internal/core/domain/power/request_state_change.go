@@ -18,52 +18,41 @@ var ErrKeyRequired = fmt.Errorf("key is nil, is required for validation")
 
 type RequestStateChangeMessage struct {
 	Identifier machine.Identifier
-	Target     string
-	Key        *string
 	ChangeType ChangeType
-	Timeout    int64
 	Time       time.Time
 }
 
 func NewRebootMessage(identifier machine.Identifier, endpoint string, key string) *RequestStateChangeMessage {
+	now := time.Now().UTC()
 	return &RequestStateChangeMessage{
 		Identifier: identifier,
-		Target:     endpoint,
-		Key:        &key,
 		ChangeType: ChangeTypeReboot,
-		Timeout:    RebootingTimeout,
-		Time:       time.Now().UTC().UTC(),
+		Time:       now,
 	}
 }
 
 func NewPowerOffMessage(identifier machine.Identifier, endpoint string, key string) *RequestStateChangeMessage {
+	now := time.Now().UTC()
 	return &RequestStateChangeMessage{
 		Identifier: identifier,
-		Target:     endpoint,
-		Key:        &key,
 		ChangeType: ChangeTypePowerOff,
-		Timeout:    StoppingTimeout,
-		Time:       time.Now().UTC().UTC(),
+		Time:       now,
 	}
 }
 
 func NewWakeOnLanMessage(identifier machine.Identifier, mac string) *RequestStateChangeMessage {
+	now := time.Now().UTC()
 	return &RequestStateChangeMessage{
 		Identifier: identifier,
-		Target:     mac,
 		ChangeType: ChangeTypeWakeOnLan,
-		Timeout:    StartingTimeout,
-		Time:       time.Now().UTC().UTC(),
+		Time:       now,
 	}
 }
 
 func (m *RequestStateChangeMessage) AsJsonModel() *RequestStateChangeMessageJson {
 	return &RequestStateChangeMessageJson{
 		Identifier: m.Identifier.String(),
-		Target:     m.Target,
-		Key:        m.Key,
 		ChangeType: m.ChangeType.String(),
-		Timeout:    m.Timeout,
 		Time:       m.Time,
 	}
 }
@@ -75,10 +64,7 @@ func (m *RequestStateChangeMessage) ToJson() ([]byte, error) {
 
 type RequestStateChangeMessageJson struct {
 	Identifier string    `json:"identifier"`
-	Target     string    `json:"target"`
-	Key        *string   `json:"key,omitempty"`
 	ChangeType string    `json:"changeType"`
-	Timeout    int64     `json:"timeout"`
 	Time       time.Time `json:"time"`
 }
 
@@ -93,20 +79,9 @@ func (m *RequestStateChangeMessageJson) ToDomain() (*RequestStateChangeMessage, 
 		return nil, err
 	}
 
-	switch changeType {
-	case ChangeTypeReboot:
-		if m.Key == nil {
-			return nil, ErrKeyRequired
-		}
-		return NewRebootMessage(id, m.Target, *m.Key), nil
-	case ChangeTypePowerOff:
-		if m.Key == nil {
-			return nil, ErrKeyRequired
-		}
-		return NewPowerOffMessage(id, m.Target, *m.Key), nil
-	case ChangeTypeWakeOnLan:
-		return NewWakeOnLanMessage(id, m.Target), nil
-	default:
-		return nil, ErrInvalidChangeType
-	}
+	return &RequestStateChangeMessage{
+		Identifier: id,
+		ChangeType: changeType,
+		Time:       m.Time,
+	}, nil
 }

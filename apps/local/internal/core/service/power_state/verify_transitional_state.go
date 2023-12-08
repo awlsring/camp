@@ -15,27 +15,42 @@ const (
 	RebootTimeout   = StartingTimeout + StoppingTimeout
 )
 
-func (s *Service) VerifyTransitionalState(ctx context.Context, id machine.Identifier, started, deadline time.Time, state machine.MachineStatus, endpoint machine.MachineEndpoint, token machine.AgentKey) error {
+func (s *Service) VerifyTransitionalState(ctx context.Context, id machine.Identifier, state machine.MachineStatus) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msgf("validating transitional state %s", state.String())
 
-	now := time.Now().UTC()
-
-	switch state {
-	case machine.MachineStatusPending:
-		log.Debug().Msg("machine is pending, checking timeout")
-		timeout := started.Add(PendingTimeout)
-		if !now.After(timeout) {
-			log.Debug().Msg("machine is within deadline, ignoring")
-			return nil
-		}
-	case machine.MachineStatusStopping, machine.MachineStatusRebooting, machine.MachineStatusStarting:
-		log.Debug().Msg("machine is transitioning, checking timeout")
-		if !now.After(deadline) {
-			log.Debug().Msg("machine is still within deadline, ignoring")
-			return nil
-		}
+	log.Debug().Msg("getting machine entry")
+	m, err := s.repo.Get(ctx, id)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get machine entry")
+		return err
 	}
 
-	return s.VerifyState(ctx, id, state, endpoint, token)
+	now := time.Now().UTC()
+	var timeout time.Duration
+	switch state {
+	case machine.MachineStatusPending:
+		log.Debug().Msg("machine is pending, checking last update")
+		timeout = PendingTimeout
+	case machine.MachineStatusStopping:
+		log.Debug().Msg("machine is stopping, checking last update")
+		timeout = StoppingTimeout
+	case machine.MachineStatusStarting:
+		log.Debug().Msg("machine is starting, checking last update")
+		timeout = StartingTimeout
+	case machine.MachineStatusRebooting:
+		log.Debug().Msg("machine is rebooting, checking last update")
+		timeout = RebootTimeout
+	default:
+		log.Debug().Msg("machine is not in transitional state, ignoring")
+		return nil
+	}
+
+	if !m.UpdatedAt.Add(timeout).Before(now) {
+		log.Debug().Msg("machine is still within timeout, ignoring")
+		return nil
+	}
+
+	log.Debug().Msg("machine is outside of timeout, checking state")
+	return s.verifyState(ctx, m, state)
 }

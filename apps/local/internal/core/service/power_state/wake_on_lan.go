@@ -8,17 +8,24 @@ import (
 	"github.com/awlsring/camp/internal/pkg/logger"
 )
 
-func (s *Service) WakeOnLan(ctx context.Context, id machine.Identifier, mac machine.MacAddress) error {
+func (s *Service) WakeOnLan(ctx context.Context, id machine.Identifier) error {
 	log := logger.FromContext(ctx)
 	log.Info().Msgf("Initiating wake on lan for machine %s", id)
 
-	log.Debug().Msgf("Sending magic packet to %s", mac)
-	err := s.wol.SendSignal(ctx, mac.String())
+	log.Debug().Msg("getting machine entry")
+	m, err := s.repo.Get(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to send magic packet to %s", mac)
+		log.Error().Err(err).Msg("Failed to get machine entry")
+		return err
+	}
+
+	log.Debug().Msg("Sending magic packet")
+	err = s.wol.SendSignal(ctx, m.PowerCapabilities.WakeOnLan.MacAddress.String())
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to send magic packet")
 		return errors.New(errors.ErrInternalFailure, err)
 	}
-	log.Debug().Msgf("Successfully sent magic packet to %s", mac)
+	log.Debug().Msg("Successfully sent magic packet")
 
 	log.Debug().Msg("Setting status of machine to pending")
 	err = s.reportChangeAndUpdateState(ctx, id, machine.MachineStatusPending, machine.MachineStatusStarting, true)

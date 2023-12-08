@@ -1,4 +1,4 @@
-package agent
+package campd
 
 import (
 	"context"
@@ -15,25 +15,19 @@ type Client interface {
 	CheckMachineConnectivity(ctx context.Context, id, endpoint, token string) (bool, error)
 }
 
-type AgentTargetConfig struct {
-	Identifier string
-	Endpoint   string
-	ApiKey     string
-}
-
-type CachedAgentClientCache struct {
+type CampdCacheClient struct {
 	cache *expirable.LRU[string, *campagent.Client]
 	mu    sync.Mutex
 }
 
-func NewAgentClientCache() (Client, error) {
+func NewCacheClient() Client {
 	cache := expirable.NewLRU[string, *campagent.Client](20, nil, time.Second*60)
-	return &CachedAgentClientCache{
+	return &CampdCacheClient{
 		cache: cache,
-	}, nil
+	}
 }
 
-func (c *CachedAgentClientCache) createClientInCache(ctx context.Context, id, endpoint, token string) (*campagent.Client, error) {
+func (c *CampdCacheClient) createClientInCache(ctx context.Context, id, endpoint, token string) (*campagent.Client, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -46,7 +40,7 @@ func (c *CachedAgentClientCache) createClientInCache(ctx context.Context, id, en
 	return client, nil
 }
 
-func (c *CachedAgentClientCache) makeClient(ctx context.Context, endpoint, key string) (*campagent.Client, error) {
+func (c *CampdCacheClient) makeClient(ctx context.Context, endpoint, key string) (*campagent.Client, error) {
 	client, err := campagent.NewClient(endpoint, NewStaticAuthKeyProvider(key))
 	if err != nil {
 		return nil, err
@@ -55,7 +49,7 @@ func (c *CachedAgentClientCache) makeClient(ctx context.Context, endpoint, key s
 	return client, nil
 }
 
-func (c *CachedAgentClientCache) GetClient(ctx context.Context, id, endpoint, token string) (*campagent.Client, error) {
+func (c *CampdCacheClient) GetClient(ctx context.Context, id, endpoint, token string) (*campagent.Client, error) {
 	client, ok := c.cache.Get(id)
 	if ok {
 		return client, nil
@@ -69,7 +63,7 @@ func (c *CachedAgentClientCache) GetClient(ctx context.Context, id, endpoint, to
 	return client, nil
 }
 
-func (c *CachedAgentClientCache) PowerOffMachine(ctx context.Context, id, endpoint, token string) error {
+func (c *CampdCacheClient) PowerOffMachine(ctx context.Context, id, endpoint, token string) error {
 	client, err := c.GetClient(ctx, id, endpoint, token)
 	if err != nil {
 		return err
@@ -83,7 +77,7 @@ func (c *CachedAgentClientCache) PowerOffMachine(ctx context.Context, id, endpoi
 	return nil
 }
 
-func (c *CachedAgentClientCache) RebootMachine(ctx context.Context, id, endpoint, token string) error {
+func (c *CampdCacheClient) RebootMachine(ctx context.Context, id, endpoint, token string) error {
 	client, err := c.GetClient(ctx, id, endpoint, token)
 	if err != nil {
 		return err
@@ -97,7 +91,7 @@ func (c *CachedAgentClientCache) RebootMachine(ctx context.Context, id, endpoint
 	return nil
 }
 
-func (c *CachedAgentClientCache) CheckMachineConnectivity(ctx context.Context, id, endpoint, token string) (bool, error) {
+func (c *CampdCacheClient) CheckMachineConnectivity(ctx context.Context, id, endpoint, token string) (bool, error) {
 	client, err := c.GetClient(ctx, id, endpoint, token)
 	if err != nil {
 		return false, err

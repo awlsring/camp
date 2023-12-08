@@ -31,7 +31,7 @@ func (m *StateChangeMessage) AsJsonModel() *StateChangeMessageJson {
 		Was:        m.Was.String(),
 		Now:        m.Now.String(),
 		Planned:    m.Planned,
-		Time:       m.Time.Unix(),
+		Time:       m.Time,
 	}
 }
 
@@ -41,11 +41,11 @@ func (m *StateChangeMessage) ToJson() ([]byte, error) {
 }
 
 type StateChangeMessageJson struct {
-	Identifier string `json:"identifier"`
-	Was        string `json:"was"`
-	Now        string `json:"now"`
-	Planned    bool   `json:"planned"`
-	Time       int64  `json:"time"`
+	Identifier string    `json:"identifier"`
+	Was        string    `json:"was"`
+	Now        string    `json:"now"`
+	Planned    bool      `json:"planned"`
+	Time       time.Time `json:"time"`
 }
 
 func (m *StateChangeMessageJson) ToDomain() (*StateChangeMessage, error) {
@@ -69,6 +69,6 @@ func (m *StateChangeMessageJson) ToDomain() (*StateChangeMessage, error) {
 		Was:        was,
 		Now:        now,
 		Planned:    m.Planned,
-		Time:       time.Unix(m.Time, 0),
+		Time:       m.Time,
 	}, nil
 }

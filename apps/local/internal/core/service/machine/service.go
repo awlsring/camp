@@ -9,8 +9,9 @@ import (
 var _ service.Machine = &machineService{}
 
 type machineService struct {
-	powerTopic topic.PowerChange
-	repo       repository.Machine
+	stateChangeTopic        topic.PowerStateChange
+	stateChangeRequestTopic topic.PowerStateJob
+	repo                    repository.Machine
 }
 
 func NewMachineService(repo repository.Machine) service.Machine {

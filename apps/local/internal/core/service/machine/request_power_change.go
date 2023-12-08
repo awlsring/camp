@@ -44,7 +44,7 @@ func (s *machineService) RequestPowerChange(ctx context.Context, id machine.Iden
 	}
 
 	log.Debug().Msg("Posting power change request to topic")
-	err = s.powerTopic.SendPowerChangeRequest(ctx, msg)
+	err = s.stateChangeRequestTopic.SendRequestStateChangeMessage(ctx, msg)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to post power change request to topic")
 		return err

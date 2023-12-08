@@ -13,6 +13,7 @@ type MachineSql struct {
 	RegisteredAt      time.Time `db:"registered_at"`
 	UpdatedAt         time.Time `db:"updated_at"`
 	Status            string    `db:"status"`
+	PowerState        *PowerStateModelSql
 	PowerCapabilities *PowerCapabilityModelSql
 	System            *SystemModelSql
 	Cpu               *CpuModelSql
@@ -95,6 +96,22 @@ func (m *MachineSql) ToModel() (*machine.Machine, error) {
 		Addresses:         addresses,
 	}, nil
 
+}
+
+type PowerStateModelSql struct {
+	State     string    `db:"state"`
+	UpdatedAt time.Time `db:"updated_at"`
+	Id        int64     `db:"id"`
+	MachineId string    `db:"machine_id"`
+}
+
+func (p *PowerStateModelSql) ToModel() *machine.PowerState {
+	state, err := machine.MachineStatusFromString(p.State)
+	if err != nil {
+		state = machine.MachineStatusUnknown
+	}
+
+	return machine.NewPowerState(state, p.UpdatedAt)
 }
 
 type PowerCapabilityModelSql struct {
