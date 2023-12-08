@@ -9,7 +9,7 @@ use camp_local_rs::{
         CpuArchitecture, DiskInterface, DiskType, IpAddressSummary, IpAddressVersion, MachineClass,
         MachineCpuSummary, MachineDiskSummary, MachineMemorySummary,
         MachineNetworkInterfaceSummary, MachineStatus, MachineSystemSummary, MachineVolumeSummary,
-        ReportedMachineSummary,
+        ReportedMachineSummary, ReportedPowerCapabilitiesSummary,
     },
     Builder, Client, Config,
 };
@@ -84,16 +84,35 @@ impl ReportingClient {
 
         match resp {
             Ok(_) => Result::Ok(true),
-            Err(e) => Result::Err(format!("Failed to check registration: {}", e)),
+            Err(e) => {
+                let service_err = e.into_service_error();
+                if service_err.is_resource_not_found_error() {
+                    return Result::Ok(false);
+                }
+                Result::Err("Failed to check registration".to_string())
+            }
         }
     }
 
     pub async fn register(&self, description: SystemDescription) {
+        let id = description.machine_id.to_owned();
+        let class = match description.class.to_lowercase().as_str() {
+            "virtualmachine" => MachineClass::VirtualMachine,
+            "baremetal" => MachineClass::BareMetal,
+            "hypervisor" => MachineClass::Hypervisor,
+            _ => MachineClass::UnknownValue,
+        };
+
         let summary = system_decription_to_summary(description);
         let resp = self
             .client
             .register()
-            .set_summary(Some(summary))
+            .internal_identifier(id)
+            .set_class(Some(class))
+            .power_capabilities(ReportedPowerCapabilitiesSummary::builder().build())
+            .set_system_summary(Some(summary))
+            .set_callback_endpoint(Some(String::from("http://localhost:7032")))
+            .set_callback_key(Some("a".to_string()))
             .send()
             .await;
         match resp {
@@ -155,13 +174,6 @@ fn get_status_code_from_err<T>(err: SdkError<T>) -> u16 {
 }
 
 fn system_decription_to_summary(description: SystemDescription) -> ReportedMachineSummary {
-    let class = match description.class.to_lowercase().as_str() {
-        "virtualmachine" => MachineClass::VirtualMachine,
-        "baremetal" => MachineClass::BareMetal,
-        "hypervisor" => MachineClass::Hypervisor,
-        _ => MachineClass::UnknownValue,
-    };
-
     let mut disks = vec![];
     for disk in description.disks.iter() {
         disks.push(disk_description_to_disk_summary(disk.to_owned()));
@@ -185,8 +197,8 @@ fn system_decription_to_summary(description: SystemDescription) -> ReportedMachi
     }
 
     ReportedMachineSummary::builder()
-        .internal_identifier(description.machine_id)
-        .class(class)
+        // .internal_identifier(description.machine_id)
+        // .class(class)
         .system(host_description_to_system_summary(
             description.host.to_owned(),
         ))

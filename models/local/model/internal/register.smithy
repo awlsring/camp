@@ -21,6 +21,7 @@ operation Register {
         internalIdentifier: InternalMachineIdentifier
 
         @documentation("The machine's class")
+        @required
         class: MachineClass
 
         @documentation("The summary of the machine to register.")

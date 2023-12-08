@@ -9,6 +9,8 @@ import (
 type MachineSql struct {
 	Identifier        string    `db:"identifier"`
 	Class             string    `db:"class"`
+	Endpoint          string    `db:"endpoint"`
+	Key               string    `db:"key"`
 	LastHeartbeat     time.Time `db:"last_heartbeat"`
 	RegisteredAt      time.Time `db:"registered_at"`
 	UpdatedAt         time.Time `db:"updated_at"`
@@ -80,9 +82,21 @@ func (m *MachineSql) ToModel() (*machine.Machine, error) {
 		return nil, err
 	}
 
+	endpoint, err := machine.MachineEndpointFromString(m.Endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	apiKey, err := machine.AgentKeyFromString(m.Key)
+	if err != nil {
+		return nil, err
+	}
+
 	return &machine.Machine{
 		Identifier:        id,
 		Class:             class,
+		AgentEndpoint:     endpoint,
+		AgentApiKey:       apiKey,
 		LastHeartbeat:     m.LastHeartbeat,
 		RegisteredAt:      m.RegisteredAt,
 		UpdatedAt:         m.UpdatedAt,

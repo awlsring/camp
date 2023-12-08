@@ -45,6 +45,7 @@ pub fn cpu_to_summary(cpu: &Cpu) -> MachineCpuSummary {
         "arm" => CpuArchitecture::Arm,
         "armv7" => CpuArchitecture::Arm,
         "aarch64" => CpuArchitecture::Arm,
+        // "riscv64" => CpuArchitecture::RiscV,
         _ => CpuArchitecture::Unknown,
     };
 

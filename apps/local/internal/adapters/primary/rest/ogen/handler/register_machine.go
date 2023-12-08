@@ -31,9 +31,9 @@ func (h *Handler) Register(ctx context.Context, req *camplocal.RegisterRequestCo
 		return nil, err
 	}
 
-	class, err := machine.MachineClassFromString(string(req.Class.Value))
+	class, err := machine.MachineClassFromString(string(req.Class))
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to parse class %s", req.Class.Value)
+		log.Error().Err(err).Msgf("Failed to parse class %s", string(req.Class))
 		return nil, err
 	}
 
