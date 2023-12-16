@@ -10,17 +10,17 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (h *Handler) DescribeBios(ctx context.Context, in *emptypb.Empty) (*campd.DescribeBiosOutput, error) {
+func (h *Handler) DescribeHost(ctx context.Context, req *emptypb.Empty) (*campd.DescribeHostOutput, error) {
 	log := logger.FromContext(ctx)
-	log.Debug().Msg("DescribeBios called")
-
-	log.Debug().Msg("getting bios")
-	bios, err := h.moboSvc.DescribeBios(ctx)
+	log.Debug().Msg("Describing host")
+	host, err := h.hostSvc.Describe(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to get bios")
+		log.Error().Err(err).Msg("Failed to describe host")
 		return nil, errors.GrpcError(err)
 	}
 
-	log.Debug().Msg("returning Bios Summary")
-	return &campd.DescribeBiosOutput{Bios: model.BiosFromDomain(bios)}, nil
+	log.Debug().Msg("Returning host summary")
+	return &campd.DescribeHostOutput{
+		Host: model.HostFromDomain(host),
+	}, nil
 }

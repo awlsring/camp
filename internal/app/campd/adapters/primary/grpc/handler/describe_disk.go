@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc/model"
+	"github.com/awlsring/camp/internal/pkg/errors"
 	"github.com/awlsring/camp/internal/pkg/logger"
 	campd "github.com/awlsring/camp/pkg/gen/campd_grpc"
 )
@@ -16,7 +17,7 @@ func (h *Handler) DescribeDisk(ctx context.Context, in *campd.DescribeDiskInput)
 	disk, err := h.strSvc.DescribeDisk(ctx, in.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get disk")
-		return nil, err
+		return nil, errors.GrpcError(err)
 	}
 
 	log.Debug().Msg("returning Disk Summary")

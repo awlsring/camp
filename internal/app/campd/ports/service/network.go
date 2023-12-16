@@ -11,5 +11,6 @@ var ErrNicNotFound = fmt.Errorf("nic not found")
 
 type Network interface {
 	ListNics(ctx context.Context) ([]*network.Nic, error)
+	ListIpAddresses(ctx context.Context) ([]*network.IpAddress, error)
 	DescribeNic(ctx context.Context, name string) (*network.Nic, error)
 }
