@@ -4,7 +4,7 @@ namespace awlsring.camp.common
 
 enum DiskType {
     HDD = "HDD"
-    SDD = "SSD"
+    SSD = "SSD"
     FDD = "FDD"
     ODD = "ODD"
     VIRTUAL = "Virtual"
