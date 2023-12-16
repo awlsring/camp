@@ -4,8 +4,10 @@ import (
 	"context"
 	"net"
 
+	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc/interceptor"
 	"github.com/awlsring/camp/internal/pkg/logger"
 	campd "github.com/awlsring/camp/pkg/gen/campd_grpc"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 )
 
@@ -22,7 +24,10 @@ type CampdGrpcServer struct {
 }
 
 func NewServer(hdl campd.CampdServer, opts ...ServerOpt) (*CampdGrpcServer, error) {
-	srv := grpc.NewServer()
+	grpcOpts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(interceptor.NewLoggingInterceptor(zerolog.DebugLevel)),
+	}
+	srv := grpc.NewServer(grpcOpts...)
 	campd.RegisterCampdServer(srv, hdl)
 	s := &CampdGrpcServer{
 		network: DefaultNetwork,
