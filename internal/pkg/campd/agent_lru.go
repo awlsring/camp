@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	campagent "github.com/awlsring/camp/packages/camp_agent"
+	campagent "github.com/awlsring/camp/pkg/gen/campd"
 	"github.com/hashicorp/golang-lru/v2/expirable"
 )
 

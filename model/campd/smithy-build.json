@@ -1,0 +1,27 @@
+{
+    "version": "2.0",
+    "sources": ["model"],
+    "imports": ["../common/model"],
+    "maven": {
+      "dependencies": [
+          "software.amazon.smithy:smithy-model:1.37.0",
+          "software.amazon.smithy:smithy-validation-model:1.37.0",
+          "software.amazon.smithy:smithy-aws-traits:1.37.0",
+          "software.amazon.smithy:smithy-linters:1.37.0",
+          "software.amazon.smithy:smithy-openapi:1.37.0",
+          "software.amazon.smithy:smithy-openapi-traits:1.37.0",
+          "software.amazon.smithy:smithy-waiters:1.37.0",
+          "com.disneystreaming.alloy:alloy-core:0.2.8"
+        ]
+    },
+    "projections": {
+        "openapi": {
+            "plugins": {
+                "openapi": {
+                    "service": "awlsring.camp.campd#Campd",
+                    "protocol": "aws.protocols#restJson1"
+                }
+            }
+        }
+    }
+}

@@ -3,7 +3,7 @@ package campd
 import (
 	"context"
 
-	campagent "github.com/awlsring/camp/packages/camp_agent"
+	campagent "github.com/awlsring/camp/pkg/gen/campd"
 )
 
 type StaticAuthKeyProvider struct {

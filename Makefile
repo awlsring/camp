@@ -1,9 +1,7 @@
 SRC_DIR := $(shell git rev-parse --show-toplevel)
-APP_DIR := $(SRC_DIR)/apps
-CUR_DIR := $(shell pwd)
-MODEL_DIR := $(SRC_DIR)/models
+MODEL_DIR := $(SRC_DIR)/model
 
-APPS := agent local
+APPS := local campd
 
 all: $(APPS)
 
@@ -17,6 +15,6 @@ build-common:
 
 $(APPS): codegen-common
 	@echo "Building $@"
-	$(MAKE) -C apps/$@
+	$(MAKE) -C cmd/$@
 
 .PHONY: all

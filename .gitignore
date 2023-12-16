@@ -10,9 +10,12 @@ apps/test
 models/**/database/ent
 .env
 .smithy*
+pkg/gen/*
 packages/camp_*
 apps/**/build
 system_snapshot.json
 config.toml
 config.yaml
 config.json
+cmd/test
+gentmp
