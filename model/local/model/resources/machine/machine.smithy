@@ -3,13 +3,13 @@ $version: "2.0"
 namespace awlsring.camp.local
 
 use awlsring.camp.common#CpuSummary
-use awlsring.camp.common#HostSummary
-use awlsring.camp.common#MachineClass
-use awlsring.camp.common#StatusSummary
-use awlsring.camp.common#MemorySummary
-use awlsring.camp.common#IpAddressSummaries
-use awlsring.camp.common#NetworkInterfaceSummaries
 use awlsring.camp.common#DiskSummaries
+use awlsring.camp.common#HostSummary
+use awlsring.camp.common#IpAddressSummaries
+use awlsring.camp.common#MachineClass
+use awlsring.camp.common#MemorySummary
+use awlsring.camp.common#NetworkInterfaceSummaries
+use awlsring.camp.common#StatusSummary
 use awlsring.camp.common#Tags
 
 resource Machine {

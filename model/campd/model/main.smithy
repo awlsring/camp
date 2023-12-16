@@ -22,8 +22,7 @@ use aws.protocols#restJson1
 @httpApiKeyAuth(name: "X-Api-Key", in: "header")
 @paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "pageSize")
 service Campd {
-    version: "2023-12-12"
-    // operations: [Health, Uptime, BootTime, DescribeBios]
+    version: "2023-12-15"
     operations: [Health, Reboot, PowerOff, BootTime, Uptime, DescribeHost, DescribeBios, DescribeMotherboard, DescribeCpu, DescribeMemory, DescribeDisk, ListDisks, DescribeNetworkInterface, ListNetworkInterfaces, ListAddresses]
     errors: [UnauthorizedException]
 }

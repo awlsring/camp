@@ -11,8 +11,7 @@
           "software.amazon.smithy:smithy-openapi:1.37.0",
           "software.amazon.smithy:smithy-openapi-traits:1.37.0",
           "software.amazon.smithy:smithy-waiters:1.37.0",
-          "software.amazon.smithy.rust.codegen:codegen-core:0.1.0",
-          "software.amazon.smithy.rust.codegen:codegen-client:0.1.0"
+          "com.disneystreaming.alloy:alloy-core:0.2.8"
         ]
     },
     "projections": {
@@ -22,23 +21,6 @@
             "service": "awlsring.camp.local#CampLocal",
             "protocol": "aws.protocols#restJson1"
           }
-        }
-      },
-      "rust": {
-        "plugins": {
-            "rust-client-codegen": {
-                "runtimeConfig": {
-                    "relativePath": "/home/awlsring/Code/smithy-rs/rust-runtime"
-                },
-                "service": "awlsring.camp.local#CampLocal",  
-                "codegen": {
-                    "includeFluentClient": true
-                },
-                "module": "camp_local_rs",
-                "moduleDescription": "Camp Local Client",
-                "moduleVersion": "0.1.0",
-                "moduleAuthors": ["awlsring@gmail.com"]
-            }
         }
       }
     }

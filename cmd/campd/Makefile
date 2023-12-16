@@ -32,7 +32,6 @@ codegen:
 	mv $(SRC_DIR)/gentmp/campd_grpc/smithytranslate/* $(PKG_DIR)/gen/campd_grpc
 	rm -rf $(SRC_DIR)/gentmp
 
-
 build: codegen
 	@echo "Building Campd app"
 	go mod tidy
