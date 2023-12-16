@@ -1,6 +1,8 @@
 package board
 
 import (
+	"context"
+
 	"github.com/awlsring/camp/internal/app/campd/ports/service"
 	"github.com/awlsring/camp/internal/pkg/domain/motherboard"
 	"github.com/awlsring/camp/internal/pkg/values"
@@ -12,7 +14,7 @@ type Service struct {
 	mobo *motherboard.Motherboard
 }
 
-func InitService() (service.Motherboard, error) {
+func InitService(ctx context.Context) (service.Motherboard, error) {
 	b, err := ghw.BIOS()
 	if err != nil {
 		return nil, err

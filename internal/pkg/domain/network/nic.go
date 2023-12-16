@@ -8,7 +8,7 @@ type Nic struct {
 	MacAddress  *MacAddress
 	Speed       *string
 	Duplex      *string
-	PCIAddress  string
+	PCIAddress  *string
 	Vendor      *string
 	IpAddresses []*IpAddress
 }
@@ -20,6 +20,6 @@ func NewNic(name string, macAddress *MacAddress, virtual bool, speed string, dup
 		Virtual:    virtual,
 		Speed:      values.ParseOptional(speed),
 		Duplex:     values.ParseOptional(duplex),
-		PCIAddress: pciAddress,
+		PCIAddress: values.ParseOptional(pciAddress),
 	}
 }

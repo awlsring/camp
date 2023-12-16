@@ -1,6 +1,8 @@
 package host
 
 import (
+	"context"
+
 	"github.com/awlsring/camp/internal/app/campd/ports/service"
 	"github.com/awlsring/camp/internal/pkg/domain/host"
 	"github.com/awlsring/camp/internal/pkg/values"
@@ -11,7 +13,7 @@ type Service struct {
 	host *host.Host
 }
 
-func InitService() (service.Host, error) {
+func InitService(ctx context.Context) (service.Host, error) {
 	info, err := pshost.Info()
 	if err != nil {
 		return nil, err

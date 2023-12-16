@@ -19,7 +19,7 @@ func NicFromDomain(in *network.Nic) *campd.NetworkInterfaceSummary {
 		Vendor:      grpcmodel.NewStringValue(in.Vendor),
 		Duplex:      grpcmodel.NewStringValue(in.Duplex),
 		Speed:       grpcmodel.NewStringValue(in.Speed),
-		PCIAddress:  in.PCIAddress,
+		PciAddress:  grpcmodel.NewStringValue(in.PCIAddress),
 		IpAddresses: address,
 	}
 }

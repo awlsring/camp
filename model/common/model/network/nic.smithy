@@ -21,8 +21,7 @@ structure NetworkInterfaceSummary {
 
     speed: String
 
-    @required
-    PCIAddress: String
+    pciAddress: String
 }
 
 list NetworkInterfaceSummaries {

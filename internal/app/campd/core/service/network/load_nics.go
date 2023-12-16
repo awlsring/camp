@@ -15,9 +15,11 @@ func (s *Service) loadNics(ctx context.Context) error {
 
 	net, err := ghw.Network()
 	if err != nil {
+		log.Error().Err(err).Msg("error loading network")
 		return err
 	}
 
+	log.Debug().Msg("creating network models")
 	nics := map[string]*network.Nic{}
 	for _, nic := range net.NICs {
 		var mac *network.MacAddress
@@ -33,9 +35,11 @@ func (s *Service) loadNics(ctx context.Context) error {
 			Virtual:    nic.IsVirtual,
 			Speed:      values.ParseOptional(nic.Speed),
 			Duplex:     values.ParseOptional(nic.Duplex),
-			PCIAddress: *values.ParseOptional(*nic.PCIAddress),
+			PCIAddress: nic.PCIAddress,
 		}
 	}
 	s.nics = nics
+
+	log.Debug().Msg("network models created")
 	return nil
 }
