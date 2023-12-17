@@ -24,13 +24,15 @@ func (s *Service) refreshIfNeeded(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("Checking if refresh is needed")
 	now := time.Now().UTC()
-	if now.Sub(s.lastCheck) > s.refreshInterval {
-		log.Debug().Msg("Refresh needed, refreshing disks")
-		err := s.loadDisks(ctx)
-		if err != nil {
+
+	if s.lastCheck.IsZero() || now.Sub(s.lastCheck) > s.refreshInterval {
+		log.Debug().Msg("Refreshing disks")
+		if err := s.loadDisks(ctx); err != nil {
 			return err
 		}
+		s.lastCheck = now
 	}
+
 	return nil
 }
 

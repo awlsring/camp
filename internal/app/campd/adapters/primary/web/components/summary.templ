@@ -1,0 +1,17 @@
+package components
+
+import "github.com/awlsring/camp/internal/app/campd/core/domain/system"
+
+templ Summary(machineId string, system *system.System) {
+    <div>
+        <h1>Machine { machineId } </h1>
+        <div>
+            if system.Host != nil {
+                <h2> Host: </h2>
+                if system.Host.Hostname != nil {
+                    <p> Hostname: { *system.Host.Hostname } </p>
+                }
+            }
+        </div>
+    </div>
+}

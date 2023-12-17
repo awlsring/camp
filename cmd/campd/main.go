@@ -7,6 +7,8 @@ import (
 
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc"
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc/handler"
+	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web"
+	wHdl "github.com/awlsring/camp/internal/app/campd/adapters/primary/web/handler"
 	"github.com/awlsring/camp/internal/app/campd/core/service/board"
 	"github.com/awlsring/camp/internal/app/campd/core/service/cpu"
 	"github.com/awlsring/camp/internal/app/campd/core/service/host"
@@ -30,7 +32,7 @@ func main() {
 	log := logger.FromContext(ctx)
 	log.Info().Msg("Initializing")
 
-	log.Info().Msg("Initializing gRPC server")
+	log.Info().Msg("Initializing services")
 	cpuSvc, err := cpu.InitService(ctx)
 	panicOnErr(err)
 
@@ -49,13 +51,23 @@ func main() {
 	storageSvc, err := storage.InitService(ctx)
 	panicOnErr(err)
 
+	log.Info().Msg("Initializing gRPC handler")
 	hdl := handler.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
 	srv, err := grpc.NewServer(hdl)
 	panicOnErr(err)
 
-	log.Info().Msg("Starting server")
-	err = srv.Start(ctx)
-	panicOnErr(err)
+	log.Info().Msg("Initializing web handler")
+	webHdl := wHdl.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
+	log.Info().Msg("Starting web server")
+	webSrv := web.NewServer(webHdl)
+	go func() {
+		panicOnErr(webSrv.Start(ctx))
+	}()
+
+	log.Info().Msg("Starting gRPC server")
+	go func() {
+		panicOnErr(srv.Start(ctx))
+	}()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
