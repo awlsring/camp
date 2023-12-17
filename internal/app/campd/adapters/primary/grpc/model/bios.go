@@ -7,6 +7,9 @@ import (
 )
 
 func BiosFromDomain(in *motherboard.Bios) *campd.BiosSummary {
+	if in == nil {
+		return &campd.BiosSummary{}
+	}
 	return &campd.BiosSummary{
 		Vendor:  grpcmodel.NewStringValue(in.Vendor),
 		Version: grpcmodel.NewStringValue(in.Version),

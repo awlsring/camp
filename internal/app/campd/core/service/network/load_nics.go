@@ -5,6 +5,7 @@ import (
 
 	"github.com/awlsring/camp/internal/pkg/domain/network"
 	"github.com/awlsring/camp/internal/pkg/logger"
+	"github.com/awlsring/camp/internal/pkg/sys"
 	"github.com/awlsring/camp/internal/pkg/values"
 	"github.com/jaypipes/ghw"
 )
@@ -12,6 +13,10 @@ import (
 func (s *Service) loadNics(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("loading nics")
+	if sys.IsMacOS() {
+		log.Warn().Msg("network service not implemented for mac")
+		return nil
+	}
 
 	net, err := ghw.Network()
 	if err != nil {

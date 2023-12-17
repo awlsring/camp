@@ -5,6 +5,8 @@ import (
 
 	"github.com/awlsring/camp/internal/app/campd/ports/service"
 	"github.com/awlsring/camp/internal/pkg/domain/motherboard"
+	"github.com/awlsring/camp/internal/pkg/logger"
+	"github.com/awlsring/camp/internal/pkg/sys"
 	"github.com/awlsring/camp/internal/pkg/values"
 	"github.com/jaypipes/ghw"
 )
@@ -15,13 +17,23 @@ type Service struct {
 }
 
 func InitService(ctx context.Context) (service.Motherboard, error) {
+	log := logger.FromContext(ctx)
+	log.Debug().Msg("Initializing motherboard service")
+
+	if sys.IsMacOS() {
+		log.Warn().Msg("Motherboard service not implemented for apple")
+		return &Service{}, nil
+	}
+
 	b, err := ghw.BIOS()
 	if err != nil {
+		log.Error().Err(err).Msg("failed to get BIOS info")
 		return nil, err
 	}
 
 	bo, err := ghw.Baseboard()
 	if err != nil {
+		log.Error().Err(err).Msg("failed to get baseboard info")
 		return nil, err
 	}
 

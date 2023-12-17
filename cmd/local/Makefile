@@ -23,7 +23,7 @@ codegen:
 		@echo "Generating the campd grpc server and go client"
 	mkdir -p $(SRC_DIR)/gentmp
 	mkdir -p $(PROTO_DIR)
-	~/.local/share/coursier/bin/smithytranslate smithy-to-proto -i $(MODEL_DIR)/build/smithy/source/model $(PROTO_DIR)
+	smithytranslate smithy-to-proto -i $(MODEL_DIR)/build/smithy/source/model $(PROTO_DIR)
 	cd $(PROTO_DIR) && buf generate --template $(MODEL_DIR)/buf.gen.yaml --output $(SRC_DIR)/gentmp
 	mkdir -p $(GRPC_GEN_DIR)
 	mv $(SRC_DIR)/gentmp/local_grpc/awlsring/camp/local/* $(GRPC_GEN_DIR)

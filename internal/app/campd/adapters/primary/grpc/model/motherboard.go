@@ -7,6 +7,9 @@ import (
 )
 
 func MotherboardFromDomain(in *motherboard.Motherboard) *campd.MotherboardSummary {
+	if in == nil {
+		return &campd.MotherboardSummary{}
+	}
 	return &campd.MotherboardSummary{
 		AssetTag: grpcmodel.NewStringValue(in.AssetTag),
 		Product:  grpcmodel.NewStringValue(in.Product),

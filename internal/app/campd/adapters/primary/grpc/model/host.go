@@ -7,6 +7,9 @@ import (
 )
 
 func HostFromDomain(in *host.Host) *campd.HostSummary {
+	if in == nil {
+		return &campd.HostSummary{}
+	}
 	os := OsFromDomain(in.OS)
 	return &campd.HostSummary{
 		Hostname: grpcmodel.NewStringValue(in.Hostname),
@@ -16,6 +19,9 @@ func HostFromDomain(in *host.Host) *campd.HostSummary {
 }
 
 func OsFromDomain(in *host.OS) *campd.OsSummary {
+	if in == nil {
+		return &campd.OsSummary{}
+	}
 	return &campd.OsSummary{
 		Kernel:   grpcmodel.NewStringValue(in.Kernel),
 		Name:     grpcmodel.NewStringValue(in.Name),
