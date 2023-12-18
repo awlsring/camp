@@ -21,3 +21,5 @@ config.yaml
 config.json
 cmd/test
 gentmp
+**/node_modules
+**/dist

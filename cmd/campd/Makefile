@@ -3,6 +3,7 @@ PKG_DIR := $(SRC_DIR)/pkg
 REST_GEN_DIR := $(PKG_DIR)/gen/campd
 GRPC_GEN_DIR := $(PKG_DIR)/gen/campd_grpc
 APP_DIR := $(SRC_DIR)/cmd/campd
+APP_PKG_DIR := $(SRC_DIR)/internal/app/campd
 BUILD_DIR := $(SRC_DIR)/build
 CUR_DIR := $(shell pwd)
 MODEL_DIR := $(SRC_DIR)/model/campd
@@ -33,6 +34,8 @@ codegen:
 	rm -rf $(SRC_DIR)/gentmp
 
 build: codegen
+	@echo "Building Campd web"
+	tailwindcss -c $(APP_DIR)/tailwind.config.js -i $(APP_DIR)/web/assets/tailwind.css -o $(APP_PKG_DIR)/adapters/primary/web/dist/styles.css
 	@echo "Building Campd app"
 	go mod tidy
 	@echo "Building Camp Local Rest API"

@@ -1,0 +1,95 @@
+package pages
+
+import (
+    "fmt"
+    "github.com/awlsring/camp/internal/app/campd/core/domain/system"
+
+
+)
+
+templ Summary(system *system.System) {
+    @Base("Summary") {
+        <body class="bg-gray-100 p-8">
+
+            <div class="max-w-2xl mx-auto bg-white p-8 rounded shadow-md">
+
+                <h1 class="text-2xl font-bold mb-4">System Information</h1>
+
+                <!-- Host Information -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold mb-2">Host Information</h2>
+                    <p>Hostname: { *system.Host.Hostname }</p>
+                    // <p>Host ID: { system.Host.HostId }</p>
+                    <!-- Add more fields as needed -->
+                </div>
+
+                <!-- BIOS Information -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold mb-2">BIOS Information</h2>
+                    // <p>Date: { *system.Bios.Date }</p>
+                    <p>Date: 10</p>
+                    // <p>Vendor: {{ .Bios.Vendor }}</p>
+                    // <p>Version: {{ .Bios.Version }}</p>
+                    <!-- Add more fields as needed -->
+                </div>
+
+                <!-- Motherboard Information -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold mb-2">Motherboard Information</h2>
+                    <p>Asset Tag: Tag</p>
+                    // <p>Asset Tag: { *system.Motherboard.AssetTag }</p>
+                    <!-- Add more fields as needed -->
+                </div>
+
+                <!-- CPU Information -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold mb-2">CPU Information</h2>
+                    <p>Total Cores: { fmt.Sprintf("%d", system.Cpu.TotalCores) }</p>
+                    // <p>Total Threads: {{ .Cpu.TotalThreads }}</p>
+                    <!-- Add more fields as needed -->
+                </div>
+
+                <!-- Memory Information -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold mb-2">Memory Information</h2>
+                    <p>Total Memory: { fmt.Sprintf("%d", system.Memory.Total) }</p>
+                    <!-- Add more fields as needed -->
+                </div>
+
+                // <!-- Disk Information -->
+                // <div class="mb-6">
+                //     <h2 class="text-xl font-semibold mb-2">Disk Information</h2>
+                //     <!-- Iterate over Disks -->
+                //     {{ range .Disks }}
+                //         <p>Name: {{ .Name }}</p>
+                //         <p>Size: {{ .Size }}</p>
+                //         <!-- Add more fields as needed -->
+                //     {{ end }}
+                // </div>
+
+                // <!-- Network Interface Information -->
+                // <div class="mb-6">
+                //     <h2 class="text-xl font-semibold mb-2">Network Interface Information</h2>
+                //     <!-- Iterate over NetworkInterfaces -->
+                //     {{ range .NetworkInterfaces }}
+                //         <p>Name: {{ .Name }}</p>
+                //         <!-- Add more fields as needed -->
+                //     {{ end }}
+                // </div>
+
+                // <!-- IP Address Information -->
+                // <div class="mb-6">
+                //     <h2 class="text-xl font-semibold mb-2">IP Address Information</h2>
+                //     <!-- Iterate over IpAddresses -->
+                //     {{ range .IpAddresses }}
+                //         <p>Version: {{ .Version }}</p>
+                //         <p>Address: {{ .Address }}</p>
+                //         <!-- Add more fields as needed -->
+                //     {{ end }}
+                // </div>
+
+            </div>
+
+        </body>
+    }
+}

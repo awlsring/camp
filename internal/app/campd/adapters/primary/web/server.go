@@ -3,18 +3,19 @@ package web
 import (
 	"context"
 	"net/http"
+	"time"
 
-	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/components"
-	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/handler"
+	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/handler/system"
 	"github.com/awlsring/camp/internal/pkg/logger"
+	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
 	address string
-	hdl     *handler.SystemHandler
+	hdl     *system.Handler
 }
 
-func NewServer(hdl *handler.SystemHandler, opts ...ServerOpt) *Server {
+func NewServer(hdl *system.Handler, opts ...ServerOpt) *Server {
 	s := &Server{
 		address: ":8080",
 		hdl:     hdl,
@@ -31,20 +32,19 @@ func (s *Server) Start(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("Loading webserver routes")
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		sum, err := s.hdl.GetSystem(ctx)
-		if err != nil {
-			log.Error().Err(err).Msg("error getting system information")
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		log.Debug().Msg("Handling request")
-		components.Summary("m-123", sum).Render(ctx, w)
-	})
+	router := chi.NewRouter()
+
+	MountAssets(router)
+	s.hdl.Mount(router)
+
+	server := &http.Server{
+		Addr:    s.address,
+		Handler: http.TimeoutHandler(router, 30*time.Second, "request timed out"),
+	}
 
 	go func() {
 		log.Debug().Msgf("web server listening at %v", s.address)
-		if err := http.ListenAndServe(s.address, nil); err != nil {
+		if err := server.ListenAndServe(); err != nil {
 			log.Error().Err(err).Msg("error listening")
 		}
 	}()

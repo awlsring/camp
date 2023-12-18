@@ -8,7 +8,7 @@ import (
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc"
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc/handler"
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web"
-	wHdl "github.com/awlsring/camp/internal/app/campd/adapters/primary/web/handler"
+	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/handler/system"
 	"github.com/awlsring/camp/internal/app/campd/core/service/board"
 	"github.com/awlsring/camp/internal/app/campd/core/service/cpu"
 	"github.com/awlsring/camp/internal/app/campd/core/service/host"
@@ -57,7 +57,7 @@ func main() {
 	panicOnErr(err)
 
 	log.Info().Msg("Initializing web handler")
-	webHdl := wHdl.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
+	webHdl := system.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
 	log.Info().Msg("Starting web server")
 	webSrv := web.NewServer(webHdl)
 	go func() {

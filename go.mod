@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-faster/errors v0.7.1
 	github.com/go-faster/jx v1.1.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
