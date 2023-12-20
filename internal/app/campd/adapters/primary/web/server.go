@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/handler/system"
+	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/middleware"
 	"github.com/awlsring/camp/internal/pkg/logger"
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog"
 )
 
 type Server struct {
@@ -33,6 +35,7 @@ func (s *Server) Start(ctx context.Context) error {
 	log.Debug().Msg("Loading webserver routes")
 
 	router := chi.NewRouter()
+	router.Use(middleware.InitLogging(zerolog.DebugLevel))
 
 	MountAssets(router)
 	s.hdl.Mount(router)
