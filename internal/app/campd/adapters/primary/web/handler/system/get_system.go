@@ -56,7 +56,7 @@ func (h *Handler) GetSystem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sort.Slice(nics, func(i, j int) bool {
-		return !nics[i].Virtual && nics[j].Virtual
+		return nics[i].Name < nics[j].Name
 	})
 
 	log.Debug().Msg("Getting ip address information")

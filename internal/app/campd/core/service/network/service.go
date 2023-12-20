@@ -32,7 +32,7 @@ type Service struct {
 func InitService(ctx context.Context, opts ...ServiceOpt) (service.Network, error) {
 	s := &Service{
 		loadVirtual:       false,
-		ignoredNicPrefix:  []string{"br", "veth", "docker", "cni", "flannel"},
+		ignoredNicPrefix:  []string{"br", "veth", "docker", "cni", "flannel", "ap1", "awdl0", "anpi", "llw0", "lo0", "utun", "bridge", "stf", "gif"},
 		ignoredAddrPrefix: []string{"fe80::", "169.254."},
 	}
 

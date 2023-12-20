@@ -186,7 +186,7 @@ templ Summary(system *system.System) {
 								}
 								if len(networkInterface.IpAddresses) > 0 {
 									<div class="mt-2">
-										<p class="text-md font-medium mb-2">IP Addresses</p>
+										<p class="text-md font-medium mb-2">Addresses</p>
 										for _, ipAddress := range networkInterface.IpAddresses {
 											<li class="ml-3">{ ipAddress.Address.String() } ({ ipAddress.Version.String() })</li>
 										}

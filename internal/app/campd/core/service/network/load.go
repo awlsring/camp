@@ -30,11 +30,12 @@ func makeMacAddress(mac string) *network.MacAddress {
 	return &m
 }
 
-func (s *Service) load(ctx context.Context) error {
+func (s *Service) loadPhysicalNics(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 	log.Debug().Msg("loading nics")
 	if sys.IsMacOS() {
 		log.Warn().Msg("network service not implemented for mac")
+		s.nics = map[string]*network.Nic{}
 		return nil
 	}
 
@@ -62,7 +63,19 @@ func (s *Service) load(ctx context.Context) error {
 		log.Debug().Interface("nic", n).Msg("created network model")
 	}
 	s.nics = nics
+	return nil
+}
 
+func nicFromIface(iface net.InterfaceStat) *network.Nic {
+	return &network.Nic{
+		Name:       iface.Name,
+		MacAddress: makeMacAddress(iface.HardwareAddr),
+	}
+}
+
+func (s *Service) loadAddresses(ctx context.Context) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msg("loading addresses")
 	addresses := []*network.IpAddress{}
 
 	ifaces, err := net.InterfacesWithContext(ctx)
@@ -73,7 +86,11 @@ func (s *Service) load(ctx context.Context) error {
 	for _, iface := range ifaces {
 		nic, ok := s.nics[iface.Name]
 		if !ok {
-			continue
+			if inIgnoreList(s.ignoredNicPrefix, iface.Name) {
+				continue
+			}
+			nic = nicFromIface(iface)
+			s.nics[iface.Name] = nic
 		}
 
 		if nic.MacAddress == nil {
@@ -96,6 +113,22 @@ func (s *Service) load(ctx context.Context) error {
 		}
 	}
 	s.addresses = addresses
+	return nil
+}
+
+func (s *Service) load(ctx context.Context) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msg("loading network")
+
+	err := s.loadPhysicalNics(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = s.loadAddresses(ctx)
+	if err != nil {
+		return err
+	}
 
 	log.Debug().Msg("network models created")
 	return nil
