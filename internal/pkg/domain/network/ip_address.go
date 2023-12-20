@@ -5,12 +5,14 @@ import "github.com/awlsring/camp/internal/pkg/values"
 type IpAddress struct {
 	Version IpAddressVersion
 	Address Address
+	Nic     *Nic
 }
 
-func NewIpAddress(version IpAddressVersion, address Address) IpAddress {
+func NewIpAddress(version IpAddressVersion, address Address, nic *Nic) IpAddress {
 	return IpAddress{
 		Version: version,
 		Address: address,
+		Nic:     nic,
 	}
 }
 

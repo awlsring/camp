@@ -2,6 +2,7 @@ package system
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/web/pages"
 	"github.com/awlsring/camp/internal/app/campd/core/domain/system"
@@ -54,6 +55,9 @@ func (h *Handler) GetSystem(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
+	sort.Slice(nics, func(i, j int) bool {
+		return !nics[i].Virtual && nics[j].Virtual
+	})
 
 	log.Debug().Msg("Getting ip address information")
 	ips, err := h.netSvc.ListIpAddresses(ctx)
@@ -61,6 +65,9 @@ func (h *Handler) GetSystem(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
+	sort.Slice(ips, func(i, j int) bool {
+		return ips[i].Version < ips[j].Version
+	})
 
 	log.Debug().Msg("Getting disk information")
 	disks, err := h.strSvc.ListDisks(ctx)

@@ -17,6 +17,16 @@ const (
 	IpAddressTypeUnknown
 )
 
+func DetermineIpAddressType(ip string) IpAddressVersion {
+	if strings.Contains(ip, ":") {
+		return IpAddressV6
+	}
+	if strings.Contains(ip, ".") {
+		return IpAddressV4
+	}
+	return IpAddressTypeUnknown
+}
+
 func IpAddressTypeFromString(v string) IpAddressVersion {
 	switch strings.ToLower(v) {
 	case "ipv4", "v4":

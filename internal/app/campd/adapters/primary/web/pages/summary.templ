@@ -133,7 +133,7 @@ templ Summary(system *system.System) {
 									<p>Serial: { *disk.Serial }</p>
 								}
 								if disk.WWN != nil {
-									<p>Firmware: { *disk.WWN }</p>
+									<p class="w-full overflow-ellipsis overflow-clip">WWN: { *disk.WWN }</p>
 								}
 								if len(disk.Partitions) > 0 {
 									<h3 class="text-xl font-semibold mb-2">Partitions</h3>
@@ -167,7 +167,7 @@ templ Summary(system *system.System) {
 						<h2 class="text-xl font-semibold mb-2">Network Interfaces</h2>
 						for _, networkInterface := range system.NetworkInterfaces {
 							<div class="border-t border-gray-500 mt-2 pt-2">
-								<p>Name: { networkInterface.Name }</p>
+								<p class="text-md font-semibold mb-2">{ networkInterface.Name }</p>
 								<p>Virtual: { fmt.Sprintf("%t", networkInterface.Virtual) }</p>
 								if networkInterface.MacAddress != nil {
 									<p>MAC Address: { networkInterface.MacAddress.String() }</p>
@@ -184,17 +184,17 @@ templ Summary(system *system.System) {
 								if networkInterface.PCIAddress != nil {
 									<p>PCI Address: { *networkInterface.PCIAddress }</p>
 								}
-							</div>
-						}
-					</div>
-				}
-				if len(system.IpAddresses) > 0 {
-					<div class="mb-6">
-						<h2 class="text-xl font-semibold mb-2">IP Addresses</h2>
-						for _, ipAddress := range system.IpAddresses {
-							<div class="border-t border-gray-500 mt-2 pt-2">
-								<p>Version: { ipAddress.Version.String() }</p>
-								<p>Address: { ipAddress.Address.String() }</p>
+								if len(networkInterface.IpAddresses) > 0 {
+									<div class="mt-2">
+										<p class="text-md font-medium mb-2">IP Addresses</p>
+										for _, ipAddress := range networkInterface.IpAddresses {
+											<div class="border-t border-gray-300 mt-1 pt-1">
+												<p>Version: { ipAddress.Version.String() }</p>
+												<p>Address: { ipAddress.Address.String() }</p>
+											</div>
+										}
+									</div>
+								}
 							</div>
 						}
 					</div>

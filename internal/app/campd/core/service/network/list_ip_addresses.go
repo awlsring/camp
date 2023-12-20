@@ -9,6 +9,6 @@ import (
 
 func (s *Service) ListIpAddresses(ctx context.Context) ([]*network.IpAddress, error) {
 	log := logger.FromContext(ctx)
-	log.Warn().Msg("Ip addressing not implemented, returning nil")
-	return nil, nil
+	log.Debug().Msg("Listing IP Addresses")
+	return s.addresses, nil
 }
