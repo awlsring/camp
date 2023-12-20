@@ -56,7 +56,7 @@ templ Summary(system *system.System) {
 				}
 				if system.Motherboard != nil {
 					<div class="mb-6">
-						<h2 class="text-xl font-semibold mb-2">Motherboard Information</h2>
+						<h2 class="text-xl font-semibold mb-2">Motherboard</h2>
 						if system.Motherboard.AssetTag != nil {
 							<p>Asset Tag: { *system.Motherboard.AssetTag }</p>
 						}
@@ -89,16 +89,20 @@ templ Summary(system *system.System) {
 						if len(system.Cpu.Processors) > 0 {
 							<h3 class="text-xl font-semibold mb-2">Processors</h3>
 							for _, processor := range system.Cpu.Processors {
-								<h4>Processor { fmt.Sprintf("Processor %d", processor.Id) }</h4>
-								<p>Cores { fmt.Sprintf("%d", processor.CoreCount) }</p>
-								<p>Threads { fmt.Sprintf("%d", processor.ThreadCount) }</p>
-								if len(processor.Cores) > 0 {
-									<h5 class="text-xl font-semibold mb-2">Cores</h5>
-									for _, core := range processor.Cores {
-										<h6>Core { fmt.Sprintf("Core %d", core.Id) }</h6>
-										<p>Threads { fmt.Sprintf("%d", core.Threads) }</p>
+								<div class="border-t border-gray-500 mt-2 pt-2">
+									<h4>Processor { fmt.Sprintf("%d", processor.Id) }</h4>
+									<p>Cores { fmt.Sprintf("%d", processor.CoreCount) }</p>
+									<p>Threads { fmt.Sprintf("%d", processor.ThreadCount) }</p>
+									if len(processor.Cores) > 0 {
+										<h5 class="text-xl font-semibold mb-2">Cores</h5>
+										for _, core := range processor.Cores {
+											<div class="border-t border-gray-500 mt-2 pt-2">
+												<h6>Core { fmt.Sprintf("%d", core.Id) }</h6>
+												<p>Threads { fmt.Sprintf("%d", core.Threads) }</p>
+											</div>
+										}
 									}
-								}
+								</div>
 							}
 						}
 					</div>
@@ -113,46 +117,48 @@ templ Summary(system *system.System) {
 					<div class="mb-6">
 						<h2 class="text-xl font-semibold mb-2">Disks</h2>
 						for _, disk := range system.Disks {
-							<p>Name: { disk.Name }</p>
-							<p>Size: { values.BytesToHumanReadable(disk.Size) }</p>
-							<p>Type: { disk.DriveType.String() }</p>
-							<p>Controller: { disk.StorageController.String() }</p>
-							<p>Removable: { fmt.Sprintf("%t", disk.Removable) }</p>
-							if disk.Vendor != nil {
-								<p>Vendor: { *disk.Vendor }</p>
-							}
-							if disk.Model != nil {
-								<p>Model: { *disk.Model }</p>
-							}
-							if disk.Serial != nil {
-								<p>Serial: { *disk.Serial }</p>
-							}
-							if disk.WWN != nil {
-								<p>Firmware: { *disk.WWN }</p>
-							}
-							if len(disk.Partitions) > 0 {
-								<h3 class="text-xl font-semibold mb-2">Partitions</h3>
-								for _, partition := range disk.Partitions {
-									<h4>Partition { partition.Name }</h4>
-									<p>Size: { values.BytesToHumanReadable(partition.Size) }</p>
-									<p>Readonly: { fmt.Sprintf("%t", partition.Readonly) }</p>
-									if partition.FileSystem != nil {
-										<p>File System: { *partition.FileSystem }</p>
-									}
-									if partition.Label != nil {
-										<p>Label: { *partition.Label }</p>
-									}
-									if partition.Type != nil {
-										<p>Type: { *partition.Type }</p>
-									}
-									if partition.UUID != nil {
-										<p>UUID: { *partition.UUID }</p>
-									}
-									if partition.MountPoint != nil {
-										<p>Mount Point: { *partition.MountPoint }</p>
+							<div class="border-t border-gray-500 mt-2 pt-2">
+								<p>Name: { disk.Name }</p>
+								<p>Size: { values.BytesToHumanReadable(disk.Size) }</p>
+								<p>Type: { disk.DriveType.String() }</p>
+								<p>Controller: { disk.StorageController.String() }</p>
+								<p>Removable: { fmt.Sprintf("%t", disk.Removable) }</p>
+								if disk.Vendor != nil {
+									<p>Vendor: { *disk.Vendor }</p>
+								}
+								if disk.Model != nil {
+									<p>Model: { *disk.Model }</p>
+								}
+								if disk.Serial != nil {
+									<p>Serial: { *disk.Serial }</p>
+								}
+								if disk.WWN != nil {
+									<p>Firmware: { *disk.WWN }</p>
+								}
+								if len(disk.Partitions) > 0 {
+									<h3 class="text-xl font-semibold mb-2">Partitions</h3>
+									for _, partition := range disk.Partitions {
+										<h4>Partition { partition.Name }</h4>
+										<p>Size: { values.BytesToHumanReadable(partition.Size) }</p>
+										<p>Readonly: { fmt.Sprintf("%t", partition.Readonly) }</p>
+										if partition.FileSystem != nil {
+											<p>File System: { *partition.FileSystem }</p>
+										}
+										if partition.Label != nil {
+											<p>Label: { *partition.Label }</p>
+										}
+										if partition.Type != nil {
+											<p>Type: { *partition.Type }</p>
+										}
+										if partition.UUID != nil {
+											<p>UUID: { *partition.UUID }</p>
+										}
+										if partition.MountPoint != nil {
+											<p>Mount Point: { *partition.MountPoint }</p>
+										}
 									}
 								}
-							}
+							</div>
 						}
 					</div>
 				}
@@ -160,23 +166,25 @@ templ Summary(system *system.System) {
 					<div class="mb-6">
 						<h2 class="text-xl font-semibold mb-2">Network Interfaces</h2>
 						for _, networkInterface := range system.NetworkInterfaces {
-							<p>Name: { networkInterface.Name }</p>
-							<p>Virtual: { fmt.Sprintf("%t", networkInterface.Virtual) }</p>
-							if networkInterface.MacAddress != nil {
-								<p>MAC Address: { networkInterface.MacAddress.String() }</p>
-							}
-							if networkInterface.Speed != nil {
-								<p>Speed: { *networkInterface.Speed }</p>
-							}
-							if networkInterface.Duplex != nil {
-								<p>Duplex: { *networkInterface.Duplex }</p>
-							}
-							if networkInterface.Vendor != nil {
-								<p>Vendor: { *networkInterface.Vendor }</p>
-							}
-							if networkInterface.PCIAddress != nil {
-								<p>PCI Address: { *networkInterface.PCIAddress }</p>
-							}
+							<div class="border-t border-gray-500 mt-2 pt-2">
+								<p>Name: { networkInterface.Name }</p>
+								<p>Virtual: { fmt.Sprintf("%t", networkInterface.Virtual) }</p>
+								if networkInterface.MacAddress != nil {
+									<p>MAC Address: { networkInterface.MacAddress.String() }</p>
+								}
+								if networkInterface.Speed != nil {
+									<p>Speed: { *networkInterface.Speed }</p>
+								}
+								if networkInterface.Duplex != nil {
+									<p>Duplex: { *networkInterface.Duplex }</p>
+								}
+								if networkInterface.Vendor != nil {
+									<p>Vendor: { *networkInterface.Vendor }</p>
+								}
+								if networkInterface.PCIAddress != nil {
+									<p>PCI Address: { *networkInterface.PCIAddress }</p>
+								}
+							</div>
 						}
 					</div>
 				}
@@ -184,40 +192,13 @@ templ Summary(system *system.System) {
 					<div class="mb-6">
 						<h2 class="text-xl font-semibold mb-2">IP Addresses</h2>
 						for _, ipAddress := range system.IpAddresses {
-							<p>Version: { ipAddress.Version.String() }</p>
-							<p>Address: { ipAddress.Address.String() }</p>
+							<div class="border-t border-gray-500 mt-2 pt-2">
+								<p>Version: { ipAddress.Version.String() }</p>
+								<p>Address: { ipAddress.Address.String() }</p>
+							</div>
 						}
 					</div>
 				}
-				// <!-- Disk Information -->
-				// <div class="mb-6">
-				//     <h2 class="text-xl font-semibold mb-2">Disk Information</h2>
-				//     <!-- Iterate over Disks -->
-				//     {{ range .Disks }}
-				//         <p>Name: {{ .Name }}</p>
-				//         <p>Size: {{ .Size }}</p>
-				//         <!-- Add more fields as needed -->
-				//     {{ end }}
-				// </div>
-				// <!-- Network Interface Information -->
-				// <div class="mb-6">
-				//     <h2 class="text-xl font-semibold mb-2">Network Interface Information</h2>
-				//     <!-- Iterate over NetworkInterfaces -->
-				//     {{ range .NetworkInterfaces }}
-				//         <p>Name: {{ .Name }}</p>
-				//         <!-- Add more fields as needed -->
-				//     {{ end }}
-				// </div>
-				// <!-- IP Address Information -->
-				// <div class="mb-6">
-				//     <h2 class="text-xl font-semibold mb-2">IP Address Information</h2>
-				//     <!-- Iterate over IpAddresses -->
-				//     {{ range .IpAddresses }}
-				//         <p>Version: {{ .Version }}</p>
-				//         <p>Address: {{ .Address }}</p>
-				//         <!-- Add more fields as needed -->
-				//     {{ end }}
-				// </div>
 			</div>
 		</body>
 	}

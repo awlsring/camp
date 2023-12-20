@@ -13,8 +13,15 @@ func (s *Service) ListDisks(ctx context.Context) ([]*storage.Disk, error) {
 	log.Debug().Msg("Listing disks")
 	err := s.refreshIfNeeded(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("error refreshing disks")
 		return nil, err
 	}
 
-	return maps.Values[map[string]*storage.Disk](s.disks), nil
+	if s.disks == nil || len(s.disks) == 0 {
+		log.Debug().Msg("No disks found")
+		return nil, nil
+	}
+
+	disk := maps.Values[map[string]*storage.Disk](s.disks)
+	return disk, nil
 }

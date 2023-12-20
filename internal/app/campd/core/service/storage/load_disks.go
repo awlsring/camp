@@ -37,12 +37,15 @@ func (s *Service) refreshIfNeeded(ctx context.Context) error {
 }
 
 func (s *Service) loadDisks(ctx context.Context) error {
+	log := logger.FromContext(ctx)
+	log.Debug().Msg("Loading disks")
 	devs, err := ghw.Block()
 	if err != nil {
+		log.Error().Err(err).Msg("error loading block devices")
 		return err
 	}
 
-	disks := map[string][]*storage.Disk{}
+	disks := map[string]*storage.Disk{}
 	for _, disk := range devs.Disks {
 		if inIgnoreList(s.ignoredDevices, disk.Name) {
 			continue
@@ -59,8 +62,10 @@ func (s *Service) loadDisks(ctx context.Context) error {
 			disk.SerialNumber,
 			disk.WWN,
 		)
-		disks[d.Name] = append(disks[d.Name], d)
+		disks[d.Name] = d
 	}
+	s.disks = disks
 
+	log.Debug().Msgf("Loaded %d disks", len(disks))
 	return nil
 }

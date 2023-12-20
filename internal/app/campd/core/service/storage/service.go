@@ -34,7 +34,6 @@ type Service struct {
 func InitService(ctx context.Context, opts ...ServiceOpt) (service.Storage, error) {
 	s := &Service{
 		refreshInterval: DefaultRefreshInterval,
-		lastCheck:       time.Time{},
 		ignoredDevices: []string{
 			"dm", "zram",
 		},
@@ -47,6 +46,7 @@ func InitService(ctx context.Context, opts ...ServiceOpt) (service.Storage, erro
 	if err := s.loadDisks(ctx); err != nil {
 		return nil, err
 	}
+	s.lastCheck = time.Now().UTC()
 
 	return s, nil
 }
