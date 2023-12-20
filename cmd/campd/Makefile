@@ -16,6 +16,8 @@ all: build
 codegen:
 	@echo "Building the campd model"
 	cd ${SRC_DIR}/model/campd && smithy format model && smithy build
+	@echo "Generating campd html templates"
+	templ generate
 	@echo "Generating the campd rest server and go client"
 	mkdir -p $(REST_GEN_DIR)
 	go mod download golang.org/x/mod # tpm hack, fix this later
