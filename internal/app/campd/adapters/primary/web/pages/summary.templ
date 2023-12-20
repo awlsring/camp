@@ -1,95 +1,224 @@
 package pages
 
 import (
-    "fmt"
-    "github.com/awlsring/camp/internal/app/campd/core/domain/system"
-
-
+	"fmt"
+	"github.com/awlsring/camp/internal/app/campd/core/domain/system"
+	"github.com/awlsring/camp/internal/pkg/values"
 )
 
 templ Summary(system *system.System) {
-    @Base("Summary") {
-        <body class="bg-gray-100 p-8">
-
-            <div class="max-w-2xl mx-auto bg-white p-8 rounded shadow-md">
-
-                <h1 class="text-2xl font-bold mb-4">System Information</h1>
-
-                <!-- Host Information -->
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold mb-2">Host Information</h2>
-                    <p>Hostname: { *system.Host.Hostname }</p>
-                    // <p>Host ID: { system.Host.HostId }</p>
-                    <!-- Add more fields as needed -->
-                </div>
-
-                <!-- BIOS Information -->
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold mb-2">BIOS Information</h2>
-                    // <p>Date: { *system.Bios.Date }</p>
-                    <p>Date: 10</p>
-                    // <p>Vendor: {{ .Bios.Vendor }}</p>
-                    // <p>Version: {{ .Bios.Version }}</p>
-                    <!-- Add more fields as needed -->
-                </div>
-
-                <!-- Motherboard Information -->
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold mb-2">Motherboard Information</h2>
-                    <p>Asset Tag: Tag</p>
-                    // <p>Asset Tag: { *system.Motherboard.AssetTag }</p>
-                    <!-- Add more fields as needed -->
-                </div>
-
-                <!-- CPU Information -->
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold mb-2">CPU Information</h2>
-                    <p>Total Cores: { fmt.Sprintf("%d", system.Cpu.TotalCores) }</p>
-                    // <p>Total Threads: {{ .Cpu.TotalThreads }}</p>
-                    <!-- Add more fields as needed -->
-                </div>
-
-                <!-- Memory Information -->
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold mb-2">Memory Information</h2>
-                    <p>Total Memory: { fmt.Sprintf("%d", system.Memory.Total) }</p>
-                    <!-- Add more fields as needed -->
-                </div>
-
-                // <!-- Disk Information -->
-                // <div class="mb-6">
-                //     <h2 class="text-xl font-semibold mb-2">Disk Information</h2>
-                //     <!-- Iterate over Disks -->
-                //     {{ range .Disks }}
-                //         <p>Name: {{ .Name }}</p>
-                //         <p>Size: {{ .Size }}</p>
-                //         <!-- Add more fields as needed -->
-                //     {{ end }}
-                // </div>
-
-                // <!-- Network Interface Information -->
-                // <div class="mb-6">
-                //     <h2 class="text-xl font-semibold mb-2">Network Interface Information</h2>
-                //     <!-- Iterate over NetworkInterfaces -->
-                //     {{ range .NetworkInterfaces }}
-                //         <p>Name: {{ .Name }}</p>
-                //         <!-- Add more fields as needed -->
-                //     {{ end }}
-                // </div>
-
-                // <!-- IP Address Information -->
-                // <div class="mb-6">
-                //     <h2 class="text-xl font-semibold mb-2">IP Address Information</h2>
-                //     <!-- Iterate over IpAddresses -->
-                //     {{ range .IpAddresses }}
-                //         <p>Version: {{ .Version }}</p>
-                //         <p>Address: {{ .Address }}</p>
-                //         <!-- Add more fields as needed -->
-                //     {{ end }}
-                // </div>
-
-            </div>
-
-        </body>
-    }
+	@Base("Summary") {
+		<body class="bg-gray-100 p-8">
+			<div class="max-w-2xl mx-auto bg-white p-8 rounded shadow-md">
+				<h1 class="text-2xl font-bold mb-4">System Information</h1>
+				if system.Host != nil {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">Host</h2>
+						if system.Host.Hostname != nil {
+							<p>Hostname: { *system.Host.Hostname }</p>
+						}
+						if system.Host.HostId != nil {
+							<p>HostId: { *system.Host.HostId }</p>
+						}
+						if system.Host.OS != nil {
+							<h3 class="text-xl font-semibold mb-2">OS</h3>
+							if system.Host.OS.Name != nil {
+								<p>Name: { *system.Host.OS.Name }</p>
+							}
+							if system.Host.OS.Version != nil {
+								<p>Version: { *system.Host.OS.Version }</p>
+							}
+							if system.Host.OS.Family != nil {
+								<p>Family: { *system.Host.OS.Family }</p>
+							}
+							if system.Host.OS.Platform != nil {
+								<p>Platform: { *system.Host.OS.Platform }</p>
+							}
+							if system.Host.OS.Kernel != nil {
+								<p>Kernel Version: { *system.Host.OS.Kernel }</p>
+							}
+						}
+					</div>
+				}
+				if system.Bios != nil {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">BIOS</h2>
+						if system.Bios.Vendor != nil {
+							<p>Vendor: { *system.Bios.Vendor }</p>
+						}
+						if system.Bios.Version != nil {
+							<p>Version: { *system.Bios.Version }</p>
+						}
+						if system.Bios.Date != nil {
+							<p>Release Date: { *system.Bios.Date }</p>
+						}
+					</div>
+				}
+				if system.Motherboard != nil {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">Motherboard Information</h2>
+						if system.Motherboard.AssetTag != nil {
+							<p>Asset Tag: { *system.Motherboard.AssetTag }</p>
+						}
+						if system.Motherboard.Product != nil {
+							<p>Platform: { *system.Motherboard.Product }</p>
+						}
+						if system.Motherboard.Serial != nil {
+							<p>Serial Number: { *system.Motherboard.Serial }</p>
+						}
+						if system.Motherboard.Version != nil {
+							<p>Version: { *system.Motherboard.Version }</p>
+						}
+						if system.Motherboard.Vendor != nil {
+							<p>Vendor: { *system.Motherboard.Vendor }</p>
+						}
+					</div>
+				}
+				if system.Cpu != nil {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">CPU</h2>
+						<p>Total Cores: { fmt.Sprintf("%d", system.Cpu.TotalCores) }</p>
+						<p>Total Threads: { fmt.Sprintf("%d", system.Cpu.TotalThreads) }</p>
+						<p>Architecture: { system.Cpu.Architecture.String() }</p>
+						if system.Cpu.Vendor != nil {
+							<p>Vendor: { *system.Cpu.Vendor }</p>
+						}
+						if system.Cpu.Model != nil {
+							<p>Model: { *system.Cpu.Model }</p>
+						}
+						if len(system.Cpu.Processors) > 0 {
+							<h3 class="text-xl font-semibold mb-2">Processors</h3>
+							for _, processor := range system.Cpu.Processors {
+								<h4>Processor { fmt.Sprintf("Processor %d", processor.Id) }</h4>
+								<p>Cores { fmt.Sprintf("%d", processor.CoreCount) }</p>
+								<p>Threads { fmt.Sprintf("%d", processor.ThreadCount) }</p>
+								if len(processor.Cores) > 0 {
+									<h5 class="text-xl font-semibold mb-2">Cores</h5>
+									for _, core := range processor.Cores {
+										<h6>Core { fmt.Sprintf("Core %d", core.Id) }</h6>
+										<p>Threads { fmt.Sprintf("%d", core.Threads) }</p>
+									}
+								}
+							}
+						}
+					</div>
+				}
+				if system.Memory != nil {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">Memory Information</h2>
+						<p>Total: { values.BytesToHumanReadable(system.Memory.Total) }</p>
+					</div>
+				}
+				if len(system.Disks) > 0 {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">Disks</h2>
+						for _, disk := range system.Disks {
+							<p>Name: { disk.Name }</p>
+							<p>Size: { values.BytesToHumanReadable(disk.Size) }</p>
+							<p>Type: { disk.DriveType.String() }</p>
+							<p>Controller: { disk.StorageController.String() }</p>
+							<p>Removable: { fmt.Sprintf("%t", disk.Removable) }</p>
+							if disk.Vendor != nil {
+								<p>Vendor: { *disk.Vendor }</p>
+							}
+							if disk.Model != nil {
+								<p>Model: { *disk.Model }</p>
+							}
+							if disk.Serial != nil {
+								<p>Serial: { *disk.Serial }</p>
+							}
+							if disk.WWN != nil {
+								<p>Firmware: { *disk.WWN }</p>
+							}
+							if len(disk.Partitions) > 0 {
+								<h3 class="text-xl font-semibold mb-2">Partitions</h3>
+								for _, partition := range disk.Partitions {
+									<h4>Partition { partition.Name }</h4>
+									<p>Size: { values.BytesToHumanReadable(partition.Size) }</p>
+									<p>Readonly: { fmt.Sprintf("%t", partition.Readonly) }</p>
+									if partition.FileSystem != nil {
+										<p>File System: { *partition.FileSystem }</p>
+									}
+									if partition.Label != nil {
+										<p>Label: { *partition.Label }</p>
+									}
+									if partition.Type != nil {
+										<p>Type: { *partition.Type }</p>
+									}
+									if partition.UUID != nil {
+										<p>UUID: { *partition.UUID }</p>
+									}
+									if partition.MountPoint != nil {
+										<p>Mount Point: { *partition.MountPoint }</p>
+									}
+								}
+							}
+						}
+					</div>
+				}
+				if len(system.NetworkInterfaces) > 0 {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">Network Interfaces</h2>
+						for _, networkInterface := range system.NetworkInterfaces {
+							<p>Name: { networkInterface.Name }</p>
+							<p>Virtual: { fmt.Sprintf("%t", networkInterface.Virtual) }</p>
+							if networkInterface.MacAddress != nil {
+								<p>MAC Address: { networkInterface.MacAddress.String() }</p>
+							}
+							if networkInterface.Speed != nil {
+								<p>Speed: { *networkInterface.Speed }</p>
+							}
+							if networkInterface.Duplex != nil {
+								<p>Duplex: { *networkInterface.Duplex }</p>
+							}
+							if networkInterface.Vendor != nil {
+								<p>Vendor: { *networkInterface.Vendor }</p>
+							}
+							if networkInterface.PCIAddress != nil {
+								<p>PCI Address: { *networkInterface.PCIAddress }</p>
+							}
+						}
+					</div>
+				}
+				if len(system.IpAddresses) > 0 {
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-2">IP Addresses</h2>
+						for _, ipAddress := range system.IpAddresses {
+							<p>Version: { ipAddress.Version.String() }</p>
+							<p>Address: { ipAddress.Address.String() }</p>
+						}
+					</div>
+				}
+				// <!-- Disk Information -->
+				// <div class="mb-6">
+				//     <h2 class="text-xl font-semibold mb-2">Disk Information</h2>
+				//     <!-- Iterate over Disks -->
+				//     {{ range .Disks }}
+				//         <p>Name: {{ .Name }}</p>
+				//         <p>Size: {{ .Size }}</p>
+				//         <!-- Add more fields as needed -->
+				//     {{ end }}
+				// </div>
+				// <!-- Network Interface Information -->
+				// <div class="mb-6">
+				//     <h2 class="text-xl font-semibold mb-2">Network Interface Information</h2>
+				//     <!-- Iterate over NetworkInterfaces -->
+				//     {{ range .NetworkInterfaces }}
+				//         <p>Name: {{ .Name }}</p>
+				//         <!-- Add more fields as needed -->
+				//     {{ end }}
+				// </div>
+				// <!-- IP Address Information -->
+				// <div class="mb-6">
+				//     <h2 class="text-xl font-semibold mb-2">IP Address Information</h2>
+				//     <!-- Iterate over IpAddresses -->
+				//     {{ range .IpAddresses }}
+				//         <p>Version: {{ .Version }}</p>
+				//         <p>Address: {{ .Address }}</p>
+				//         <!-- Add more fields as needed -->
+				//     {{ end }}
+				// </div>
+			</div>
+		</body>
+	}
 }
