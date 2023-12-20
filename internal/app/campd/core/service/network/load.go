@@ -47,7 +47,7 @@ func (s *Service) load(ctx context.Context) error {
 	log.Debug().Msg("creating network models")
 	nics := map[string]*network.Nic{}
 	for _, nic := range netw.NICs {
-		if inIgnoreList(s.ignoredPrefix, nic.Name) {
+		if inIgnoreList(s.ignoredNicPrefix, nic.Name) {
 			continue
 		}
 		n := &network.Nic{
@@ -81,6 +81,9 @@ func (s *Service) load(ctx context.Context) error {
 		}
 
 		for _, addr := range iface.Addrs {
+			if inIgnoreList(s.ignoredAddrPrefix, addr.Addr) {
+				continue
+			}
 			address, err := network.AddressFromString(addr.Addr)
 			if err != nil {
 				log.Error().Err(err).Msg("error parsing ip address")

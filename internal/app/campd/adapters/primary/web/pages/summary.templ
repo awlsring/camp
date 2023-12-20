@@ -188,10 +188,7 @@ templ Summary(system *system.System) {
 									<div class="mt-2">
 										<p class="text-md font-medium mb-2">IP Addresses</p>
 										for _, ipAddress := range networkInterface.IpAddresses {
-											<div class="border-t border-gray-300 mt-1 pt-1">
-												<p>Version: { ipAddress.Version.String() }</p>
-												<p>Address: { ipAddress.Address.String() }</p>
-											</div>
+											<li class="ml-3">{ ipAddress.Address.String() } ({ ipAddress.Version.String() })</li>
 										}
 									</div>
 								}

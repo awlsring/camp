@@ -9,23 +9,31 @@ import (
 
 type ServiceOpt func(*Service)
 
-func WithIgnoredPrefix(ignored []string) ServiceOpt {
+func WithIgnoredNicPrefix(ignored []string) ServiceOpt {
 	return func(i *Service) {
-		i.ignoredPrefix = ignored
+		i.ignoredNicPrefix = ignored
+	}
+}
+
+func WithIgnoredAddrPrefix(ignored []string) ServiceOpt {
+	return func(i *Service) {
+		i.ignoredAddrPrefix = ignored
 	}
 }
 
 type Service struct {
-	loadVirtual   bool
-	ignoredPrefix []string
-	nics          map[string]*network.Nic
-	addresses     []*network.IpAddress
+	loadVirtual       bool
+	ignoredNicPrefix  []string
+	ignoredAddrPrefix []string
+	nics              map[string]*network.Nic
+	addresses         []*network.IpAddress
 }
 
 func InitService(ctx context.Context, opts ...ServiceOpt) (service.Network, error) {
 	s := &Service{
-		loadVirtual:   false,
-		ignoredPrefix: []string{"br", "veth", "docker", "cni", "flannel"},
+		loadVirtual:       false,
+		ignoredNicPrefix:  []string{"br", "veth", "docker", "cni", "flannel"},
+		ignoredAddrPrefix: []string{"fe80::", "169.254."},
 	}
 
 	for _, opt := range opts {
