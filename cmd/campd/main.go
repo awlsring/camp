@@ -16,6 +16,8 @@ import (
 	"github.com/awlsring/camp/internal/app/campd/core/service/network"
 	"github.com/awlsring/camp/internal/app/campd/core/service/storage"
 	"github.com/awlsring/camp/internal/pkg/logger"
+	"github.com/awlsring/camp/pkg/metrics"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/rs/zerolog"
 )
 
@@ -58,6 +60,10 @@ func main() {
 
 	log.Info().Msg("Initializing web handler")
 	webHdl := system.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
+
+	log.Info().Msg("Initializing metrics server")
+	metricSrv := metrics.NewServer(metrics.WithCollectors(srv.GetMetricsCollector(), collectors.NewBuildInfoCollector(), collectors.NewGoCollector()))
+
 	log.Info().Msg("Starting web server")
 	webSrv := web.NewServer(webHdl)
 	go func() {
@@ -67,6 +73,11 @@ func main() {
 	log.Info().Msg("Starting gRPC server")
 	go func() {
 		panicOnErr(srv.Start(ctx))
+	}()
+
+	log.Info().Msg("Starting metrics server")
+	go func() {
+		panicOnErr(metricSrv.Start(ctx))
 	}()
 
 	c := make(chan os.Signal, 1)

@@ -5,8 +5,10 @@ import (
 	"net"
 
 	"github.com/awlsring/camp/internal/app/campd/adapters/primary/grpc/interceptor"
+
 	"github.com/awlsring/camp/internal/pkg/logger"
 	campd "github.com/awlsring/camp/pkg/gen/campd_grpc"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 )
@@ -21,18 +23,36 @@ type CampdGrpcServer struct {
 	address  string
 	srv      *grpc.Server
 	listener net.Listener
+	metrics  *grpcprom.ServerMetrics
+}
+
+func (c *CampdGrpcServer) GetMetricsCollector() *grpcprom.ServerMetrics {
+	return c.metrics
 }
 
 func NewServer(hdl campd.CampdServer, opts ...ServerOpt) (*CampdGrpcServer, error) {
+	metrics := grpcprom.NewServerMetrics(
+		grpcprom.WithServerCounterOptions(),
+		grpcprom.WithServerHandlingTimeHistogram(
+			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+		),
+	)
+
 	grpcOpts := []grpc.ServerOption{
 		grpc.UnaryInterceptor(interceptor.NewLoggingInterceptor(zerolog.DebugLevel)),
+		grpc.ChainUnaryInterceptor(
+			metrics.UnaryServerInterceptor(),
+		),
 	}
 	srv := grpc.NewServer(grpcOpts...)
+	metrics.InitializeMetrics(srv)
+
 	campd.RegisterCampdServer(srv, hdl)
 	s := &CampdGrpcServer{
 		network: DefaultNetwork,
 		address: DefaultAddress,
 		srv:     srv,
+		metrics: metrics,
 	}
 
 	for _, opt := range opts {
