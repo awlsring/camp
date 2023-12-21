@@ -5,7 +5,9 @@ import (
 )
 
 type Writer interface {
-	PutMetric(metric string, class Class, value float64, labels ...prometheus.Labels)
+	PutMetric(metric string, class Class, value float64)
+	Collect(ch chan<- prometheus.Metric)
+	Describe(ch chan<- *prometheus.Desc)
 }
 
 type MetricWriterOpts func(*MetricWriter)
@@ -24,7 +26,7 @@ type MetricWriter struct {
 	summary   map[string]prometheus.Summary
 }
 
-func NewMetricWriter(opts ...MetricWriterOpts) *MetricWriter {
+func NewMetricWriter(opts ...MetricWriterOpts) Writer {
 	m := &MetricWriter{
 		namespace: "",
 		counters:  make(map[string]prometheus.Counter),
