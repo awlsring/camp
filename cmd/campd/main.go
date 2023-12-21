@@ -54,7 +54,8 @@ func main() {
 	panicOnErr(err)
 
 	log.Info().Msg("Initializing gRPC handler")
-	hdl := handler.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
+	metricWriter := metrics.NewMetricWriter(metrics.WithNamespace("campd"))
+	hdl := handler.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc, metricWriter)
 	srv, err := grpc.NewServer(hdl)
 	panicOnErr(err)
 
@@ -62,7 +63,7 @@ func main() {
 	webHdl := system.New(cpuSvc, hostSvc, memSvc, moboSvc, netSvc, storageSvc)
 
 	log.Info().Msg("Initializing metrics server")
-	metricSrv := metrics.NewServer(metrics.WithCollectors(srv.GetMetricsCollector(), collectors.NewBuildInfoCollector(), collectors.NewGoCollector()))
+	metricSrv := metrics.NewServer(metrics.WithCollectors(srv.GetMetricsCollector(), collectors.NewBuildInfoCollector(), collectors.NewGoCollector(), metricWriter))
 
 	log.Info().Msg("Starting web server")
 	webSrv := web.NewServer(webHdl)

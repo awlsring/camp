@@ -8,6 +8,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+const (
+	DefaultAddress = ":9090"
+)
+
 type SeverOpt func(*Server)
 
 func WithCollectors(collectors ...prometheus.Collector) SeverOpt {
@@ -43,7 +47,7 @@ type Server struct {
 
 func NewServer(opts ...SeverOpt) *Server {
 	s := &Server{
-		address:     ":9090",
+		address:     DefaultAddress,
 		collectors:  []prometheus.Collector{},
 		handlerOpts: promhttp.HandlerOpts{},
 		registry:    prometheus.NewRegistry(),
