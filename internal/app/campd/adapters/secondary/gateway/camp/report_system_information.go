@@ -3,7 +3,7 @@ package camp_reporting
 import (
 	"context"
 
-	"github.com/awlsring/camp/internal/app/campd/adapters/secondary/reporting/camp/conversion"
+	"github.com/awlsring/camp/internal/app/campd/adapters/secondary/gateway/camp/conversion"
 	"github.com/awlsring/camp/internal/app/campd/core/domain/system"
 	"github.com/awlsring/camp/internal/pkg/domain/machine"
 	"github.com/awlsring/camp/internal/pkg/logger"
